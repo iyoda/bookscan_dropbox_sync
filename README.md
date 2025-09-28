@@ -158,6 +158,43 @@ Bookscan（ブックスキャンの電子書籍ダウンロードページ）か
   ```
 
 
+## 開発者向けセットアップ（M0）
+
+- 推奨: Python 3.11+ / macOS zsh
+
+1) 仮想環境の作成/有効化
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+```
+
+2) 依存のインストール（開発含む）
+```bash
+pip install -e ".[dev]"
+```
+
+3) pre-commit フックのセットアップ
+```bash
+pre-commit install
+pre-commit run --all-files  # 初回整形
+```
+
+4) テスト実行
+```bash
+pytest
+```
+
+5) CLIの動作確認
+```bash
+bds --help
+bds sync --dry-run
+# もしくは（インストール前の一時実行）
+PYTHONPATH=src python -m bds.cli sync --dry-run
+```
+
+注: srcレイアウトのため、未インストールの状態で `python -m bds.cli` を使う場合は `PYTHONPATH=src` を付与してください。開発時は `pip install -e .` を推奨します。
+
 ## 使い方（実装予定のCLI）
 
 - 初回ドライラン

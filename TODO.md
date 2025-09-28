@@ -17,26 +17,26 @@
 
 - [x] 設計初版（README.md）を作成
 - [x] 実装タスク（TODO.md）を作成
-- [ ] Pythonプロジェクト初期化
-  - [ ] pyproject.toml または requirements.txt 追加
-  - [ ] 仮想環境手順（READMEに記載）
-  - [ ] .gitignore（.env, .state, .cache, .logs, __pycache__ 等）
-- [ ] 開発基盤
-  - [ ] Linter/Formatter（ruff, black）
-  - [ ] 型チェック（mypy）
-  - [ ] pre-commit（整形・静的解析の自動化）
-  - [ ] テスト基盤（pytest, coverage）
-- [ ] ひな型作成（空実装）
-  - [ ] src/bds/__init__.py
-  - [ ] src/bds/cli.py
-  - [ ] src/bds/config.py
-  - [ ] src/bds/bookscan_client.py
-  - [ ] src/bds/dropbox_client.py
-  - [ ] src/bds/state_store.py
-  - [ ] src/bds/sync_planner.py
-  - [ ] src/bds/transfer.py
-  - [ ] src/bds/util/__init__.py
-- [ ] .env.example 作成（READMEの環境変数を反映）
+- [x] Pythonプロジェクト初期化
+  - [x] pyproject.toml または requirements.txt 追加
+  - [x] 仮想環境手順（READMEに記載）
+  - [x] .gitignore（.env, .state, .cache, .logs, __pycache__ 等）
+- [x] 開発基盤
+  - [x] Linter/Formatter（ruff, black）
+  - [x] 型チェック（mypy）
+  - [x] pre-commit（整形・静的解析の自動化）
+  - [x] テスト基盤（pytest, coverage）
+- [x] ひな型作成（空実装）
+  - [x] src/bds/__init__.py
+  - [x] src/bds/cli.py
+  - [x] src/bds/config.py
+  - [x] src/bds/bookscan_client.py
+  - [x] src/bds/dropbox_client.py
+  - [x] src/bds/state_store.py
+  - [x] src/bds/sync_planner.py
+  - [x] src/bds/transfer.py
+  - [x] src/bds/util/__init__.py
+- [x] .env.example 作成（READMEの環境変数を反映）
 
 推奨依存（検討中）
 - runtime: requests, beautifulsoup4, dropbox, typer, pydantic, python-dotenv, tenacity
@@ -178,7 +178,7 @@
 
 - [x] README初版
 - [x] TODO初版
-- [ ] .env.example 整備
+- [x] .env.example 整備
 - [ ] 使い方（各サブコマンド）詳細
 - [ ] トラブルシュートの更新（CAPTCHA/TOTP/OAuth）
 - [ ] 貢献ガイド（任意）
