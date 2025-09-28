@@ -7,12 +7,11 @@ from .config import load_settings
 
 app = typer.Typer(no_args_is_help=True, add_completion=False, help="Bookscan→Dropbox 同期CLI")
 
+sync_app = typer.Typer(help="Bookscan→Dropbox 同期CLI")
 
-@app.command(help="Bookscan→Dropbox 同期CLI")
+@sync_app.callback(invoke_without_command=True)
 def sync(
-    dry_run: bool = typer.Option(
-        False, "--dry-run", is_flag=True, help="Dropboxへアップロードせず計画のみ表示"
-    ),
+    dry_run: bool = typer.Option(False, help="Dropboxへアップロードせず計画のみ表示"),
 ) -> None:
     """
     M1 最小実装:
@@ -81,6 +80,7 @@ def sync(
     typer.echo("sync: 完了")
     logger.info("sync complete")
 
+app.add_typer(sync_app, name="sync")
 
 if __name__ == "__main__":
     app()

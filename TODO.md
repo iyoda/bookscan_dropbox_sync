@@ -53,14 +53,14 @@
 - [ ] BookscanClient（requests版）
   - [ ] ログイン（メール/パスワード、Cookie保持）
   - [ ] ダウンロード可能一覧のスクレイピング（ページネーション対応の最低限）
-  - [ ] アイテムメタ（タイトル/拡張子/pdf URL/更新日/サイズの取得可能な範囲）
-  - [ ] 単体テスト（HTML Fixtureでのパーステスト）
+  - [x] アイテムメタ（タイトル/拡張子/pdf URL/更新日/サイズの取得可能な範囲）
+  - [x] 単体テスト（HTML Fixtureでのパーステスト）
 - [ ] DropboxClient（固定アクセストークン）
   - [x] 単純なファイルアップロード（小サイズ前提）
   - [x] フォルダ作成・存在チェック
   - [x] メタデータ取得（同名判定の基礎）
 - [ ] StateStore（JSON版）
-  - [ ] スキーマ定義（book_id, updated_at, size, hash, dropbox_path 等）
+  - [x] スキーマ定義（book_id, updated_at, size, hash, dropbox_path 等）
   - [x] 読み書き・初期化
 - [ ] SyncPlanner
   - [x] Stateとの差分計算（新規/更新のみ抽出）
@@ -71,10 +71,10 @@
 - [ ] CLI
   - [x] `sync` サブコマンド
   - [x] `--dry-run`（アップロードせず計画のみ表示）
-  - [ ] ログ（INFO/ERROR）
+  - [x] ログ（INFO/ERROR）
 
 受け入れ条件（M1）
-- [ ] `python -m bds.cli sync --dry-run` で予定アップロードの一覧が出る
+- [x] `python -m bds.cli sync --dry-run` で予定アップロードの一覧が出る
 - [ ] `python -m bds.cli sync` で新規PDFがDropboxに1件以上アップロードされる
 - [ ] 同期済みファイルは再アップロードされない（簡易増分）
 
