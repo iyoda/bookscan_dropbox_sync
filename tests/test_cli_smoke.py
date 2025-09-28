@@ -17,5 +17,5 @@ def test_sync_dry_run_smoke() -> None:
     runner = CliRunner()
     result = runner.invoke(app, ["sync", "--dry-run"])
     assert result.exit_code == 0
-    # プレースホルダー文言が表示されること
-    assert "sync: 未実装" in result.stdout
+    # ドライランの計画出力が表示されること
+    assert "[DRY-RUN] planned actions:" in result.stdout

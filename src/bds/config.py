@@ -26,8 +26,8 @@ class Settings(BaseSettings):
 
     # 動作パラメータ
     DOWNLOAD_DIR: str = ".cache/downloads"
-    STATE_BACKEND: str = "sqlite"  # または "json"
-    STATE_PATH: str = ".state/state.db"  # jsonの場合は .state/state.json
+    STATE_BACKEND: str = "json"  # または "sqlite"
+    STATE_PATH: str = ".state/state.json"  # sqliteの場合は .state/state.db
     SYNC_MODE: str = "incremental"  # incremental|full|dry-run
     CONCURRENCY: int = 2
     RATE_LIMIT_QPS: float = 0.5
@@ -40,6 +40,18 @@ class Settings(BaseSettings):
         env_file_encoding="utf-8",
         case_sensitive=False,
     )
+
+    def validate_for_m1(self, dry_run: bool = False) -> None:
+        """
+        M1要件の簡易バリデーション:
+        - 非ドライラン時は DROPBOX_ACCESS_TOKEN を必須とする
+        """
+        if not dry_run and not self.DROPBOX_ACCESS_TOKEN:
+            raise ValueError("DROPBOX_ACCESS_TOKEN is required for upload (non dry-run).")
+
+    @property
+    def is_json_backend(self) -> bool:
+        return self.STATE_BACKEND.lower() == "json"
 
 
 def load_settings() -> Settings:
