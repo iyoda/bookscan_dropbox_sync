@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Dict, Optional
 
 import dropbox
-from dropbox.exceptions import ApiError
+from dropbox.exceptions import ApiError, BadInputError
 from dropbox.files import FileMetadata, FolderMetadata, WriteMode
 
 from .config import Settings
@@ -37,6 +37,7 @@ class DropboxClient:
         """
         Dropbox上にフォルダを作成（存在していれば何もしない）
         ネストされたフォルダも順次作成する。
+        - 特殊パス '/Apps' はDropboxの予約領域のため作成をスキップ
         """
         dbx = self._client()
         p = self._normalize_path(path).rstrip("/")
@@ -45,12 +46,17 @@ class DropboxClient:
         segments = [seg for seg in p.split("/") if seg]
         cur = ""
         for seg in segments:
-            cur = f"{cur}/{seg}"
-            try:
-                dbx.files_create_folder_v2(cur)
-            except ApiError:
-                # 既存や競合などは無視
+            next_cur = f"{cur}/{seg}"
+            # '/Apps' は作成対象外（予約ルート）
+            if next_cur.lower() == "/apps":
+                cur = next_cur
                 continue
+            try:
+                dbx.files_create_folder_v2(next_cur)
+            except (ApiError, BadInputError):
+                # 既存や権限不足/競合などは無視
+                pass
+            cur = next_cur
 
     def upload_file(self, local_path: str, dropbox_path: str) -> None:
         """

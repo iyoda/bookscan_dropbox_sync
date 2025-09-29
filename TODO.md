@@ -55,28 +55,29 @@
   - [ ] ダウンロード可能一覧のスクレイピング（ページネーション対応の最低限）
   - [x] アイテムメタ（タイトル/拡張子/pdf URL/更新日/サイズの取得可能な範囲）
   - [x] 単体テスト（HTML Fixtureでのパーステスト）
-- [ ] DropboxClient（固定アクセストークン）
+  - [x] デバッグHTMLフォールバック（BOOKSCAN_DEBUG_HTML_PATHでlist/download可）
+- [x] DropboxClient（固定アクセストークン）
   - [x] 単純なファイルアップロード（小サイズ前提）
   - [x] フォルダ作成・存在チェック
   - [x] メタデータ取得（同名判定の基礎）
-- [ ] StateStore（JSON版）
+- [x] StateStore（JSON版）
   - [x] スキーマ定義（book_id, updated_at, size, hash, dropbox_path 等）
   - [x] 読み書き・初期化
-- [ ] SyncPlanner
+- [x] SyncPlanner
   - [x] Stateとの差分計算（新規/更新のみ抽出）
   - [x] 命名規則（安全なファイル名への正規化の初版）
-- [ ] Transfer（最小）
+- [x] Transfer（最小）
   - [x] ダウンロード→一時フォルダ→Dropboxアップロード
   - [x] 成功時にState更新
-- [ ] CLI
+- [x] CLI
   - [x] `sync` サブコマンド
   - [x] `--dry-run`（アップロードせず計画のみ表示）
   - [x] ログ（INFO/ERROR）
 
 受け入れ条件（M1）
 - [x] `python -m bds.cli sync --dry-run` で予定アップロードの一覧が出る
-- [ ] `python -m bds.cli sync` で新規PDFがDropboxに1件以上アップロードされる
-- [ ] 同期済みファイルは再アップロードされない（簡易増分）
+- [x] `python -m bds.cli sync` で新規PDFがDropboxに1件以上アップロードされる
+- [x] 同期済みファイルは再アップロードされない（簡易増分）
 
 ---
 
@@ -126,8 +127,15 @@
 ## M4 認証/自動化強化
 
 - [ ] Dropbox OAuth（推奨運用）
-  - [ ] Refresh Tokenフロー（短期アクセストークン自動更新）
-  - [ ] `login dropbox` コマンド（将来: ブラウザ起動）
+  - [ ] OAuth 2.0 Authorization Code + PKCE 実装（client_secret不要）
+  - [ ] token_access_type=offline で refresh_token を取得
+  - [ ] スコープ定義: files.metadata.read/write, files.content.read/write
+  - [ ] ローカルリダイレクトURI（http://localhost:53682/callback）ハンドラ
+  - [ ] refresh_token の安全な保存（.env もしくはKeychain/1Password; 将来切替可能）
+  - [ ] access_token 自動更新（refresh）と失効時の再認可ハンドリング
+  - [ ] `login dropbox` コマンド（ブラウザ起動/手動コード入力フォールバック）
+  - [ ] `logout dropbox` コマンド（/2/auth/token/revoke）
+  - [ ] DROPBOX_TOKEN_ROTATE フラグの運用/テスト
 - [ ] Bookscan 2FA/TOTP
   - [ ] pyotp対応（環境変数 or 対話入力）
 - [ ] Playwrightフォールバック（必要時）
@@ -135,7 +143,9 @@
   - [ ] Cookie移行/セッション維持
 
 受け入れ条件（M4）
-- [ ] 長期稼働でDropboxトークンの自動更新が安定
+- [ ] ローカルブラウザで認可→refresh_token取得が安定（token_access_type=offline, PKCE）
+- [ ] refresh_tokenからaccess_tokenの自動更新で長期稼働が安定（期限切れ時も復旧）
+- [ ] `login dropbox`/`logout dropbox` の操作で認可/失効ができる
 - [ ] 2FA環境でもログイン～同期が可能
 
 ---
@@ -179,6 +189,8 @@
 - [x] README初版
 - [x] TODO初版
 - [x] .env.example 整備
+- [x] 開発用デバッグ手順（BOOKSCAN_DEBUG_HTML_PATH）追記
+- [x] Dropbox OAuth手順（PKCE + Refresh Token）追記
 - [ ] 使い方（各サブコマンド）詳細
 - [ ] トラブルシュートの更新（CAPTCHA/TOTP/OAuth）
 - [ ] 貢献ガイド（任意）

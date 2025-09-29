@@ -37,12 +37,13 @@ class TransferEngine:
         """
         同期先ルート（DROPBOX_DEST_ROOT）配下の絶対パスへ正規化
         """
-        root = self.settings.DROPBOX_DEST_ROOT.rstrip("/")
-        if not root:
-            root = "/"
-        if relpath.startswith("/"):
-            return f"{root}{relpath}"
-        return f"{root}/{relpath}"
+        # 余分なスラッシュを避けつつ正規化
+        root = self.settings.DROPBOX_DEST_ROOT or "/"
+        root_norm = "/" + root.strip("/")
+        rel_norm = relpath.lstrip("/")
+        if root_norm == "/":
+            return f"/{rel_norm}"
+        return f"{root_norm}/{rel_norm}"
 
     def run(self, plan: List[Dict[str, Any]], dry_run: bool = False) -> None:
         """
@@ -85,6 +86,9 @@ class TransferEngine:
                 "updated_at": entry.get("updated_at"),
                 "size": entry.get("size"),
             }
+            # pdf_url（存在すれば）をダウンロード情報に引き継ぐ
+            if entry.get("pdf_url"):
+                item_for_download["pdf_url"] = entry["pdf_url"]
             self.bookscan.download(item_for_download, str(local_tmp))
 
             # Dropboxへアップロード

@@ -21,7 +21,7 @@ class StateItem(TypedDict, total=False):
     dropbox_path: str
 
 
-class PlanEntry(TypedDict):
+class PlanEntry(TypedDict, total=False):
     action: str  # "upload"
     book_id: str
     relpath: str
@@ -30,6 +30,7 @@ class PlanEntry(TypedDict):
     ext: str
     updated_at: str
     size: int
+    pdf_url: str
 
 
 class SyncPlanner:
@@ -80,16 +81,17 @@ class SyncPlanner:
                 continue
             filename = self._build_filename(item)
             relpath = filename  # M1: サブフォルダなし、ルート直下
-            plan.append(
-                {
-                    "action": "upload",
-                    "book_id": book_id,
-                    "relpath": relpath,
-                    "filename": filename,
-                    "title": str(item.get("title") or ""),
-                    "ext": str(item.get("ext") or "pdf"),
-                    "updated_at": str(item.get("updated_at") or ""),
-                    "size": int(item.get("size") or 0),
-                }
-            )
+            entry: PlanEntry = {
+                "action": "upload",
+                "book_id": book_id,
+                "relpath": relpath,
+                "filename": filename,
+                "title": str(item.get("title") or ""),
+                "ext": str(item.get("ext") or "pdf"),
+                "updated_at": str(item.get("updated_at") or ""),
+                "size": int(item.get("size") or 0),
+            }
+            if "pdf_url" in item and item.get("pdf_url"):
+                entry["pdf_url"] = str(item["pdf_url"])  # type: ignore[typeddict-item]
+            plan.append(entry)
         return plan

@@ -1,0 +1,30 @@
+<!-- Debug sample for BOOKSCAN_DEBUG_HTML_PATH
+This HTML mimics Bookscan "downloadable list" items for local dry-run/testing.
+-->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <title>Bookscan Sample List</title>
+</head>
+<body>
+  <!-- item with an actual PDF URL (public test PDF) -->
+  <div class="download-item"
+       data-id="1001"
+       data-title="Sample One"
+       data-ext="pdf"
+       data-updated="2024-08-10T12:00:00Z"
+       data-size="12345"
+       data-url="https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf">
+  </div>
+
+  <!-- item without data-url (download() will fallback to dummy empty/size-based content) -->
+  <div class="download-item"
+       data-id="1002"
+       data-title="Second: Work?"
+       data-ext=".pdf"
+       data-updated="2024-08-12"
+       data-size="2048">
+  </div>
+</body>
+</html>

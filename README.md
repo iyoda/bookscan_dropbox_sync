@@ -101,6 +101,99 @@ Bookscan（ブックスキャンの電子書籍ダウンロードページ）か
   4. App key/secret を保存
   5. CLIからのOAuthでRefresh Tokenを取得（初期版は簡易運用として「長期アクセストークン」を使うオプションも記載）
 
+### Dropbox OAuth権限取得（OAuth 2.0 with PKCE + Refresh Token）
+
+developers.dropbox.com/oauth-guide に準拠した「Authorization Code + PKCE」での権限取得手順です。ネイティブCLI想定（クライアントシークレットを保持しない運用）で、長期の refresh_token を取得し、以後は短期 access_token を自動更新します（実装はM4予定／ここでは手動取得手順を記載）。
+
+前提
+- Dropbox App（Scoped Access）を作成済み
+- App Consoleで必要スコープをON（例: files.content.write, files.content.read, files.metadata.write, files.metadata.read）
+- Redirect URI に http://localhost:53682/callback を登録
+
+1) 変数の用意
+```bash
+APP_KEY="your_app_key"                         # Dropbox App Key
+REDIRECT_URI="http://localhost:53682/callback"
+# スコープ（空白区切り）
+SCOPES="files.metadata.read files.metadata.write files.content.read files.content.write"
+# URLエンコード版（空白→%20）
+SCOPE_ENC="files.metadata.read%20files.metadata.write%20files.content.read%20files.content.write"
+```
+
+2) PKCEのコードベリファイア/チャレンジ生成
+```bash
+# ランダムな code_verifier を生成（URL-safe Base64, paddingなし）
+CODE_VERIFIER="$(python3 - <<'PY'
+import os, base64
+print(base64.urlsafe_b64encode(os.urandom(64)).rstrip(b'=').decode())
+PY
+)"
+# S256 で code_challenge を作成
+CODE_CHALLENGE="$(printf "%s" "$CODE_VERIFIER" | openssl dgst -binary -sha256 | openssl base64 -A | tr '+/' '-_' | tr -d '=')"
+```
+
+3) 認可URLを開く（token_access_type=offline が重要）
+```bash
+AUTH_URL="https://www.dropbox.com/oauth2/authorize?client_id=${APP_KEY}&response_type=code&token_access_type=offline&code_challenge=${CODE_CHALLENGE}&code_challenge_method=S256&redirect_uri=${REDIRECT_URI}&scope=${SCOPE_ENC}"
+# macOS
+open "$AUTH_URL"
+# Linuxの場合は xdg-open "$AUTH_URL"
+```
+ブラウザで許可後、`REDIRECT_URI` に `?code=...` が付与されて遷移します。`code` を控えてください。
+
+4) 認可コードをトークンに交換（client_secret不要・PKCE利用）
+```bash
+CODE="上で取得したコード"
+curl -s https://api.dropboxapi.com/oauth2/token \
+  -d grant_type=authorization_code \
+  -d code="$CODE" \
+  -d client_id="$APP_KEY" \
+  -d code_verifier="$CODE_VERIFIER" \
+  -d redirect_uri="$REDIRECT_URI"
+```
+レスポンス例（抜粋）:
+```json
+{
+  "access_token": "...",      // 短期（数時間）
+  "refresh_token": "...",     // 長期（これを保管）
+  "expires_in": 14400,
+  "token_type": "bearer",
+  "scope": "..."
+}
+```
+
+5) .env へ保存（本ツールの推奨変数）
+```bash
+# 必須
+DROPBOX_APP_KEY=your_app_key
+DROPBOX_REFRESH_TOKEN=your_refresh_token
+DROPBOX_TOKEN_ROTATE=true
+
+# 任意（機密クライアントとして運用する場合のみ）
+# DROPBOX_APP_SECRET=your_app_secret
+```
+
+6) refresh_token から access_token を発行（参考：手動更新）
+- シークレット無し（PKCE運用）
+```bash
+curl -s https://api.dropboxapi.com/oauth2/token \
+  -d grant_type=refresh_token \
+  -d refresh_token="$DROPBOX_REFRESH_TOKEN" \
+  -d client_id="$DROPBOX_APP_KEY"
+```
+- シークレット有り（機密クライアント）
+```bash
+curl -s -u "$DROPBOX_APP_KEY:$DROPBOX_APP_SECRET" https://api.dropboxapi.com/oauth2/token \
+  -d grant_type=refresh_token \
+  -d refresh_token="$DROPBOX_REFRESH_TOKEN"
+```
+
+注意
+- token_access_type=offline を付けないと refresh_token は発行されません
+- App Console 側で有効化したスコープのみ使用可
+- access_token は短期のため、運用では refresh_token から自動更新（M4で対応予定）
+- 必要に応じた取り消し: `POST https://api.dropboxapi.com/2/auth/token/revoke`（Authorization: Bearer）
+
 - 環境変数（.env推奨）
   ```
   # Bookscan
@@ -194,6 +287,59 @@ PYTHONPATH=src python -m bds.cli sync --dry-run
 ```
 
 注: srcレイアウトのため、未インストールの状態で `python -m bds.cli` を使う場合は `PYTHONPATH=src` を付与してください。開発時は `pip install -e .` を推奨します。
+
+## デバッグ/ドライラン（BOOKSCAN_DEBUG_HTML_PATH）
+
+HTTPログイン未実装のM1段階でも、デバッグ用HTMLから同期計画と転送フローを検証できます。
+
+- 変数: `BOOKSCAN_DEBUG_HTML_PATH`
+  - `samples/bookscan_list_sample.html` を同梱済み（2件の擬似アイテム）
+  - ファイルパスを指定すると、そのHTML内の `.download-item` をパースします
+  - ディレクトリを指定すると、*.html と *.htm を昇順で全て読み込み、結合パース（擬似ページネーション）
+  - ワイルドカードパターン（例: `samples/*.html`）も指定可能
+  - 文字列に生HTMLを渡すことも可能です（`<` を含む場合）
+
+例（擬似ページネーションの利用）:
+```bash
+# ディレクトリ指定（samples/配下の *.html, *.htm を結合）
+export BOOKSCAN_DEBUG_HTML_PATH=samples/
+python -m bds.cli sync --dry-run
+
+# グロブ指定
+export BOOKSCAN_DEBUG_HTML_PATH="samples/*.html"
+python -m bds.cli sync --dry-run
+```
+
+1) ドライラン（Dropboxへはアップロードしない）
+```bash
+# 仮想環境を有効化済み前提
+export BOOKSCAN_DEBUG_HTML_PATH=samples/bookscan_list_sample.html
+python -m bds.cli sync --dry-run
+# 例:
+# [DRY-RUN] planned actions: 2
+# [DRY-RUN] upload book_id=1001 -> /Apps/bookscan-sync/Sample One.pdf ...
+# [DRY-RUN] upload book_id=1002 -> /Apps/bookscan-sync/Second_ Work_.pdf ...
+```
+
+2) 実アップロード（Dropboxへ反映）
+```bash
+# 注意: ネットワークアクセスとDropbox書き込みを行います
+export DROPBOX_ACCESS_TOKEN=xxxxx   # 固定アクセストークン（M1想定）
+export BOOKSCAN_DEBUG_HTML_PATH=samples/bookscan_list_sample.html
+python -m bds.cli sync
+# 実行後、Dropboxの /Apps/bookscan-sync/ に2件がアップロードされます
+```
+
+3) 増分確認（再実行時に再アップロードされない）
+```bash
+python -m bds.cli sync --dry-run
+# [DRY-RUN] planned actions: 0  となればOK（Stateにより差分なし）
+```
+
+補足:
+- 出力先ルートは `DROPBOX_DEST_ROOT`（既定: `/Apps/bookscan-sync`）
+- ダウンロード先の一時ディレクトリは `DOWNLOAD_DIR`（既定: `.cache/downloads`）
+- 同期状態は `.state/state.json` に保存されます（gitignore対象）
 
 ## 使い方（実装予定のCLI）
 
