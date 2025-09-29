@@ -7,7 +7,9 @@ from .config import load_settings
 
 app = typer.Typer(no_args_is_help=True, add_completion=False, help="Bookscan→Dropbox 同期CLI")
 
+# sync サブコマンド
 sync_app = typer.Typer(help="Bookscan→Dropbox 同期CLI")
+
 
 @sync_app.callback(invoke_without_command=True)
 def sync(
@@ -80,7 +82,70 @@ def sync(
     typer.echo("sync: 完了")
     logger.info("sync complete")
 
+
+# list サブコマンド（M2の一部を前倒し：取得一覧/State表示）
+list_app = typer.Typer(help="取得一覧/State表示")
+
+
+@list_app.callback(invoke_without_command=True)
+def list_cmd(
+    source: str = typer.Option(
+        "bookscan",
+        "-s",
+        "--source",
+        help="表示対象: 'bookscan'（取得一覧） もしくは 'state'（保存済みState）",
+    ),
+) -> None:
+    """
+    取得一覧（Bookscan）または保存済みStateを表示する簡易コマンド。
+    - source=bookscan: BOOKSCAN_DEBUG_HTML_PATH や HTTPテンプレートに従い一覧を取得
+    - source=state: StateStore から既存の同期情報を表示
+    """
+    settings = load_settings()
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+    logger = logging.getLogger("bds")
+
+    if source.lower() == "state":
+        from .state_store import StateStore
+
+        store = StateStore(settings)
+        state = store.read()
+        items = state.get("items", {})
+        items = items if isinstance(items, dict) else {}
+        typer.echo(f"[LIST] state items: {len(items)}")
+        for book_id, meta in items.items():
+            typer.echo(
+                f"[STATE] book_id={book_id} updated_at={meta.get('updated_at','')} "
+                f"size={meta.get('size')} path={meta.get('dropbox_path','')}"
+            )
+        logger.info("list state complete count=%d", len(items))
+        return
+
+    # source=bookscan（既定）
+    from .bookscan_client import BookscanClient
+
+    client = BookscanClient(settings)
+    try:
+        client.login()
+    except Exception:
+        pass
+
+    try:
+        items = client.list_downloadables()
+    except Exception:
+        items = []
+    typer.echo(f"[LIST] bookscan items: {len(items)}")
+    for it in items:
+        typer.echo(
+            f"[BOOKSCAN] id={it.get('id')} title='{it.get('title','')}' ext={it.get('ext')} "
+            f"size={it.get('size')} updated={it.get('updated_at')}"
+        )
+    logger.info("list bookscan complete count=%d", len(items))
+    return
+
+
 app.add_typer(sync_app, name="sync")
+app.add_typer(list_app, name="list")
 
 if __name__ == "__main__":
     app()

@@ -51,8 +51,8 @@
   - [x] pydantic/Envで設定を読み込む
   - [x] 必須/任意のバリデーション（例: DROPBOX_ACCESS_TOKEN 必須 in MVP）
 - [ ] BookscanClient（requests版）
-  - [ ] ログイン（メール/パスワード、Cookie保持）
-  - [ ] ダウンロード可能一覧のスクレイピング（ページネーション対応の最低限）
+  - [x] ログイン（メール/パスワード、Cookie保持）
+  - [x] ダウンロード可能一覧のスクレイピング（ページネーション対応の最低限）
   - [x] アイテムメタ（タイトル/拡張子/pdf URL/更新日/サイズの取得可能な範囲）
   - [x] 単体テスト（HTML Fixtureでのパーステスト）
   - [x] デバッグHTMLフォールバック（BOOKSCAN_DEBUG_HTML_PATHでlist/download可）
@@ -96,7 +96,7 @@
   - [ ] JSONログオプション
   - [ ] ファイル出力（.logs）
 - [ ] CLI拡張
-  - [ ] `list` サブコマンド（取得一覧/State表示）
+  - [x] `list` サブコマンド（取得一覧/State表示）
   - [ ] 失敗時の終了コード整理
 
 受け入れ条件（M2）

@@ -15,8 +15,8 @@ ItemMeta = Dict[str, Any]
 class BookscanClient:
     """
     Bookscanから認証・一覧取得・ダウンロードを行うクライアント（M1: 最小実装の骨格）
-    - 本実装のHTTPフローは後続で追加
-    - まずはHTMLから一覧をパースする関数を提供（単体テスト対象）
+    - HTTPフローの最小版（失敗は握り潰し）
+    - デバッグ入力（HTML/ディレクトリ/ワイルドカード/http(s)URL/生HTML）をサポート
     """
 
     def __init__(self, settings: Settings) -> None:
@@ -28,38 +28,59 @@ class BookscanClient:
 
     def login(self) -> None:
         """
-        ログインし、セッションを確立する。
-        M1最小版:
-          - デバッグ用HTMLパスが指定されていればログインはスキップ。
-          - 資格情報（BOOKSCAN_EMAIL/BOOKSCAN_PASSWORD）が未設定の場合もスキップ。
-          - HTTPログインの本実装は後続（M1/M2）だが、ネットワークを叩いても失敗は握り潰す。
+        ログインし、セッションを確立する（最小版）
+        - BOOKSCAN_DEBUG_HTML_PATH が指定されていればスキップ
+        - 資格情報（BOOKSCAN_EMAIL/BOOKSCAN_PASSWORD）が未設定ならスキップ
+        - BOOKSCAN_LOGIN_URL が設定されていればフォームPOSTを試みる
+        - いずれも失敗しても例外は投げずに戻る（M1はドライラン優先）
         """
         debug_path = getattr(self.settings, "BOOKSCAN_DEBUG_HTML_PATH", None)
         if debug_path:
             return
+
         email = getattr(self.settings, "BOOKSCAN_EMAIL", None)
         password = getattr(self.settings, "BOOKSCAN_PASSWORD", None)
         if not email or not password:
-            # 資格情報がない場合は安全にスキップ（テスト/ドライランで例外を出さない）
             return
+
         try:
-            # 最小のウォームアップ（Cookie確立）。本格的なフォームログインは後続実装。
-            resp = self.session.get(self.base_url, timeout=self.timeout)
-            resp.raise_for_status()
+            # Cookie確立のためのウォームアップ
+            try:
+                self.session.get(self.base_url, timeout=self.timeout).raise_for_status()
+            except Exception:
+                # base_urlへのウォームアップ失敗は無視（後続POSTで成功する可能性もある）
+                pass
+
+            login_url = getattr(self.settings, "BOOKSCAN_LOGIN_URL", None)
+            if not login_url:
+                # ログインURL未指定の場合はここまで（ウォームアップのみ）
+                return
+
+            payload: Dict[str, str] = {
+                getattr(self.settings, "BOOKSCAN_LOGIN_EMAIL_FIELD", "email"): str(email),
+                getattr(self.settings, "BOOKSCAN_LOGIN_PASSWORD_FIELD", "password"): str(password),
+            }
+            # 将来のTOTP手動入力/外部供給を想定（自動生成はM4）
+            totp_field = getattr(self.settings, "BOOKSCAN_LOGIN_TOTP_FIELD", "otp")
+            totp_value = None  # 未実装（M4でpyotp対応予定）
+            if totp_field and totp_value:
+                payload[totp_field] = totp_value
+
+            self.session.post(login_url, data=payload, timeout=self.timeout).raise_for_status()
         except Exception:
-            # M1では失敗しても例外を伝播させない（テスト安定性/ドライラン優先）
+            # M1では例外を伝播しない
             return
 
     def list_downloadables(self) -> List[ItemMeta]:
         """
         ダウンロード可能一覧を返す。
-        M1最小版（デバッグ強化）:
-        - BOOKSCAN_DEBUG_HTML_PATH が指定されている場合:
-          - ファイルパスを指定すると、そのHTMLをパース
-          - ディレクトリを指定すると、*.html(,*.htm) を昇順で全て読み込み、結合パース（擬似ページネーション）
-          - ワイルドカード（例: 'samples/*.html'）も対応
-          - 直接HTML文字列（'<' を含む）も可
-        - 上記以外（HTTP取得）は後続実装。現段階では空配列を返す。
+        優先順位:
+        1) BOOKSCAN_DEBUG_HTML_PATH が指定されていれば、それに基づくデバッグ入力をパース
+           - ファイル/ディレクトリ/ワイルドカード/http(s)URL/生HTML をサポート
+        2) 上記が無い場合で BOOKSCAN_LIST_URL_TEMPLATE が設定されているときはHTTP取得
+           - {page} を含む場合は1..BOOKSCAN_LIST_MAX_PAGES で繰り返し取得
+           - ページが空になった時点で停止（BOOKSCAN_LIST_STOP_ON_EMPTY が True の場合）
+        3) それ以外は空配列
         """
         debug_src = getattr(self.settings, "BOOKSCAN_DEBUG_HTML_PATH", None)
         if debug_src:
@@ -80,7 +101,14 @@ class BookscanClient:
                     else:
                         # その他（ソケット等）は未対応
                         pass
-                elif "<" in debug_src or "<" in debug_src:
+                elif debug_src.startswith("http://") or debug_src.startswith("https://"):
+                    try:
+                        resp = self.session.get(debug_src, timeout=self.timeout)
+                        resp.raise_for_status()
+                        html_docs = [resp.text]
+                    except Exception:
+                        html_docs = []
+                elif "<" in debug_src:
                     html_docs = [debug_src]  # 生HTML
                 else:
                     # ワイルドカードパターン対応（相対/絶対どちらも可）
@@ -98,8 +126,47 @@ class BookscanClient:
             except Exception:
                 # デバッグ指定時は失敗しても空配列で継続
                 return []
-        # HTTPでの一覧取得は後続実装
-        return []
+
+        # HTTPでの一覧取得
+        template = getattr(self.settings, "BOOKSCAN_LIST_URL_TEMPLATE", None)
+        if not template:
+            # HTTPテンプレート未設定ならM1では何もしない
+            return []
+
+        try:
+            max_pages = int(getattr(self.settings, "BOOKSCAN_LIST_MAX_PAGES", 1) or 1)
+            stop_on_empty = bool(getattr(self.settings, "BOOKSCAN_LIST_STOP_ON_EMPTY", True))
+        except Exception:
+            max_pages = 1
+            stop_on_empty = True
+
+        items: List[ItemMeta] = []
+        try:
+            for page in range(1, max_pages + 1):
+                url = template.replace("{page}", str(page)) if "{page}" in template else template
+                try:
+                    resp = self.session.get(url, timeout=self.timeout)
+                    resp.raise_for_status()
+                    html = resp.text
+                except Exception:
+                    # 一時的失敗は次のページへ（または停止）
+                    if "{page}" not in template or stop_on_empty:
+                        break
+                    else:
+                        continue
+
+                part = self.parse_downloadables(html)
+                if not part and stop_on_empty:
+                    break
+                items.extend(part)
+
+                # {page} が無ければ1ページのみ
+                if "{page}" not in template:
+                    break
+        except Exception:
+            return []
+
+        return items
 
     def download(self, item: ItemMeta, dest_path: str) -> None:
         """

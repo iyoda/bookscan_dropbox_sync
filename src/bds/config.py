@@ -11,8 +11,19 @@ class Settings(BaseSettings):
     BOOKSCAN_PASSWORD: Optional[str] = None
     BOOKSCAN_TOTP_SECRET: Optional[str] = None
     BOOKSCAN_BASE_URL: str = "https://www.bookscan.co.jp"
-    # デバッグ用: HTTP未実装でもdry-run/開発を進めるためのHTML入力（ファイルパス or 生HTML）
+    # デバッグ用: HTTP未実装でもdry-run/開発を進めるためのHTML入力（ファイルパス or 生HTML or http(s)URL）
     BOOKSCAN_DEBUG_HTML_PATH: Optional[str] = None
+
+    # Bookscan HTTPログイン/一覧（任意設定：提供時のみ使用）
+    BOOKSCAN_LOGIN_URL: Optional[str] = None
+    BOOKSCAN_LOGIN_EMAIL_FIELD: str = "email"
+    BOOKSCAN_LOGIN_PASSWORD_FIELD: str = "password"
+    BOOKSCAN_LOGIN_TOTP_FIELD: str = "otp"  # 将来のTOTP手動入力/自動化で利用予定
+
+    # 一覧取得URLテンプレート（{page} を含めるとページネーション）
+    BOOKSCAN_LIST_URL_TEMPLATE: Optional[str] = None
+    BOOKSCAN_LIST_MAX_PAGES: int = 1
+    BOOKSCAN_LIST_STOP_ON_EMPTY: bool = True
 
     # Dropbox（簡易運用：固定アクセストークン）
     DROPBOX_ACCESS_TOKEN: Optional[str] = None

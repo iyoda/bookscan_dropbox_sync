@@ -298,6 +298,7 @@ HTTPログイン未実装のM1段階でも、デバッグ用HTMLから同期計�
   - ディレクトリを指定すると、*.html と *.htm を昇順で全て読み込み、結合パース（擬似ページネーション）
   - ワイルドカードパターン（例: `samples/*.html`）も指定可能
   - 文字列に生HTMLを渡すことも可能です（`<` を含む場合）
+  - http(s) URL を指定することも可能です（そのURLのHTMLをパースします）
 
 例（擬似ページネーションの利用）:
 ```bash
@@ -340,6 +341,59 @@ python -m bds.cli sync --dry-run
 - 出力先ルートは `DROPBOX_DEST_ROOT`（既定: `/Apps/bookscan-sync`）
 - ダウンロード先の一時ディレクトリは `DOWNLOAD_DIR`（既定: `.cache/downloads`）
 - 同期状態は `.state/state.json` に保存されます（gitignore対象）
+
+## HTTPベース一覧取得（任意設定, M1最小）
+
+- Bookscan の一覧HTMLを HTTP 経由で取得するための任意設定。ログイン不要/すでにセッションが有効なケースを想定。
+- 環境変数:
+  - BOOKSCAN_LIST_URL_TEMPLATE: 一覧ページのURL。`{page}` を含めるとページネーションし、含まれなければ1ページのみ取得
+  - BOOKSCAN_LIST_MAX_PAGES: `{page}` 使用時の最大取得ページ数（既定: 1）
+  - BOOKSCAN_LIST_STOP_ON_EMPTY: あるページで `.download-item` が0件になったら以降を打ち切る（既定: true）
+- 開発時は `BOOKSCAN_DEBUG_HTML_PATH` が設定されていればそちらが優先されます。
+
+### 簡易ログイン（任意）
+
+- ログインフォームのPOST先とフィールド名を指定できます。成功/失敗に関わらず M1 では例外を投げません（ドライラン優先）。
+- 環境変数:
+  - BOOKSCAN_LOGIN_URL: ログインPOST先URL
+  - BOOKSCAN_LOGIN_EMAIL_FIELD: メールアドレスのフィールド名（既定: email）
+  - BOOKSCAN_LOGIN_PASSWORD_FIELD: パスワードのフィールド名（既定: password）
+  - BOOKSCAN_LOGIN_TOTP_FIELD: TOTP のフィールド名（既定: otp、値の自動生成は将来対応）
+
+## list サブコマンド（M2の一部を前倒し）
+
+- 取得一覧（Bookscan）または保存済みStateを表示する簡易コマンド。
+- 既定は `bookscan` の一覧を取得して表示します。`--source state` でState内容を表示します。
+
+例（Bookscanの一覧を表示: デバッグHTMLを使用）
+```bash
+# 仮想環境を有効化済み前提
+export BOOKSCAN_DEBUG_HTML_PATH=samples/bookscan_list_sample.html
+python -m bds.cli list
+# インストール済みなら:
+# bds list
+# 出力例:
+# [LIST] bookscan items: 2
+# [BOOKSCAN] id=1001 title='Sample One' ext=pdf size=12345 updated=2024-08-10T12:00:00Z
+# [BOOKSCAN] id=1002 title='Second: Work?' ext=pdf size=2048 updated=2024-08-12
+```
+
+例（Stateの内容を表示）
+```bash
+# 既定の .state/state.json を表示
+python -m bds.cli list --source state
+# インストール済みなら:
+# bds list --source state
+
+# 任意のStateファイルを指定
+python -m bds.cli list --source state  --state-pathの代わりに環境変数で:
+STATE_PATH=.state/another.json python -m bds.cli list --source state
+```
+
+備考
+- `list` の `bookscan` 表示は、`BOOKSCAN_DEBUG_HTML_PATH`（ファイル/ディレクトリ/ワイルドカード/生HTML/http(s)URL）を優先します。
+- デバッグ入力が無い場合、任意設定の `BOOKSCAN_LIST_URL_TEMPLATE` があればHTTPで取得します（{page}対応）。
+- いずれの場合も、`.download-item` 要素から簡易メタを抽出して表示します。
 
 ## 使い方（実装予定のCLI）
 
