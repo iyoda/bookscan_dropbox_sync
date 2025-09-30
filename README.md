@@ -80,6 +80,34 @@ Bookscan（ブックスキャンの電子書籍ダウンロードページ）か
 - ネットワーク
   - TLS必須、検証有効化、ユーザエージェント明示
 
+## レート制限・リトライ・User-Agent
+
+- User-Agent
+  - Bookscan 側の HTTP は requests.Session.headers に Settings.USER_AGENT を適用
+  - Dropbox SDK クライアント生成時の user_agent に Settings.USER_AGENT を渡す
+  - 既定値: bookscan-dropbox-sync/0.1 (+https://github.com/iyoda/bookscan_dropbox_sync)（環境変数 USER_AGENT で上書き可能）
+
+- レート制限（QPS）
+  - Settings.RATE_LIMIT_QPS に基づく RateLimiter で最小間隔を強制
+  - 既定 0.5（2秒/リクエスト）。0 以下で無効化
+  - 適用箇所: Bookscan の GET/POST/ダウンロード、Dropbox の files_create_folder_v2 / files_upload / files_get_metadata
+
+- リトライ
+  - Bookscan HTTP: tenacity による指数バックオフ + jitter
+    - 最大 5 回、wait_random_exponential(multiplier=1, max=10)
+  - Dropbox SDK: SDKの自動リトライを使用
+    - max_retries_on_error=5, max_retries_on_rate_limit=5
+  - タイムアウト: HTTP_TIMEOUT（既定 60 秒）
+
+例（.env）:
+```env
+RATE_LIMIT_QPS=0.5
+USER_AGENT=bookscan-dropbox-sync/0.1 (+https://github.com/iyoda/bookscan_dropbox_sync)
+HTTP_TIMEOUT=60
+```
+
+注意: 各サービスの規約を遵守し、必要に応じて RATE_LIMIT_QPS をさらに下げてください。
+
 
 ## セットアップ
 

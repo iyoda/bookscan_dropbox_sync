@@ -47,6 +47,9 @@ class Settings(BaseSettings):
     USER_AGENT: str = "bookscan-dropbox-sync/0.1 (+https://github.com/iyoda/bookscan_dropbox_sync)"
     HEADLESS: bool = True
     HTTP_TIMEOUT: int = 60
+    # Dropbox チャンクアップロード設定（M3）
+    DROPBOX_CHUNK_UPLOAD_THRESHOLD: int = 8 * 1024 * 1024  # 8MB以上はセッション方式
+    DROPBOX_CHUNK_SIZE: int = 8 * 1024 * 1024  # セッション時のチャンクサイズ
 
     model_config = SettingsConfigDict(
         env_file=".env",

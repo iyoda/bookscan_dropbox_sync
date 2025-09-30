@@ -4,9 +4,10 @@ from typing import Dict, Optional
 
 import dropbox
 from dropbox.exceptions import ApiError, BadInputError
-from dropbox.files import FileMetadata, FolderMetadata, WriteMode
+from dropbox.files import FileMetadata, FolderMetadata, WriteMode, UploadSessionCursor, CommitInfo
 
 from .config import Settings
+from .util import RateLimiter
 
 
 class DropboxClient:
@@ -20,13 +21,20 @@ class DropboxClient:
     def __init__(self, settings: Settings) -> None:
         self.settings = settings
         self._dbx: Optional[dropbox.Dropbox] = None
+        self._rl = RateLimiter(getattr(self.settings, "RATE_LIMIT_QPS", 0.0))
 
     def _client(self) -> dropbox.Dropbox:
         token = self.settings.DROPBOX_ACCESS_TOKEN
         if not token:
             raise ValueError("DROPBOX_ACCESS_TOKEN is required for Dropbox operations in M1.")
         if self._dbx is None:
-            self._dbx = dropbox.Dropbox(oauth2_access_token=token, timeout=self.settings.HTTP_TIMEOUT)
+            self._dbx = dropbox.Dropbox(
+                oauth2_access_token=token,
+                timeout=self.settings.HTTP_TIMEOUT,
+                user_agent=self.settings.USER_AGENT,
+                max_retries_on_error=5,
+                max_retries_on_rate_limit=5,
+            )
         return self._dbx
 
     @staticmethod
@@ -52,6 +60,7 @@ class DropboxClient:
                 cur = next_cur
                 continue
             try:
+                self._rl.throttle()
                 dbx.files_create_folder_v2(next_cur)
             except (ApiError, BadInputError):
                 # 既存や権限不足/競合などは無視
@@ -60,14 +69,61 @@ class DropboxClient:
 
     def upload_file(self, local_path: str, dropbox_path: str) -> None:
         """
-        ローカルファイルをDropboxへアップロード（小サイズ前提、追記しない）
-        既存ファイルとの衝突はWriteMode.add（上書きしない）。
+        ローカルファイルをDropboxへアップロード。
+        - 小サイズ: files_upload
+        - 大サイズ: アップロードセッションでチャンクアップロード
+        既存ファイルとの衝突は WriteMode.add（上書きしない）。
         """
         dbx = self._client()
         dp = self._normalize_path(dropbox_path)
-        with open(local_path, "rb") as f:
-            data = f.read()
-        dbx.files_upload(data, dp, mode=WriteMode.add, mute=True, strict_conflict=False)
+
+        # 設定から閾値/チャンクサイズを取得（未設定時は安全な既定値）
+        try:
+            threshold = int(getattr(self.settings, "DROPBOX_CHUNK_UPLOAD_THRESHOLD", 8 * 1024 * 1024))
+        except Exception:
+            threshold = 8 * 1024 * 1024
+        try:
+            chunk_size = int(getattr(self.settings, "DROPBOX_CHUNK_SIZE", 8 * 1024 * 1024))
+        except Exception:
+            chunk_size = 8 * 1024 * 1024
+        if chunk_size <= 0:
+            chunk_size = 8 * 1024 * 1024
+
+        file_size = None
+        try:
+            from pathlib import Path
+            file_size = Path(local_path).stat().st_size
+        except Exception:
+            pass
+
+        if file_size is not None and file_size > threshold:
+            # セッション方式
+            with open(local_path, "rb") as f:
+                # 先頭チャンク
+                self._rl.throttle()
+                start_res = dbx.files_upload_session_start(f.read(chunk_size))
+                cursor = UploadSessionCursor(session_id=start_res.session_id, offset=f.tell())
+                commit = CommitInfo(path=dp, mode=WriteMode.add, mute=True, strict_conflict=False)
+
+                while True:
+                    self._rl.throttle()
+                    bytes_remaining = (file_size - f.tell()) if file_size is not None else None
+                    if bytes_remaining is not None and bytes_remaining <= chunk_size:
+                        dbx.files_upload_session_finish(f.read(chunk_size), cursor, commit)
+                        break
+                    data = f.read(chunk_size)
+                    if not data:
+                        # 念のため: 残りがなければ終了（小数点誤差等）
+                        dbx.files_upload_session_finish(b"", cursor, commit)
+                        break
+                    dbx.files_upload_session_append_v2(data, cursor)
+                    cursor.offset = f.tell()
+        else:
+            # 一括アップロード（小サイズ前提）
+            with open(local_path, "rb") as f:
+                data = f.read()
+            self._rl.throttle()
+            dbx.files_upload(data, dp, mode=WriteMode.add, mute=True, strict_conflict=False)
 
     def get_metadata(self, dropbox_path: str) -> Dict[str, object]:
         """
@@ -77,6 +133,7 @@ class DropboxClient:
         dbx = self._client()
         dp = self._normalize_path(dropbox_path)
         try:
+            self._rl.throttle()
             md = dbx.files_get_metadata(dp)
         except ApiError:
             return {"exists": False, "path": dp}

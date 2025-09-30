@@ -6,8 +6,10 @@ import os
 
 import requests
 from bs4 import BeautifulSoup
+from tenacity import Retrying, stop_after_attempt, wait_random_exponential, retry_if_exception_type
 
 from .config import Settings
+from .util import RateLimiter
 
 ItemMeta = Dict[str, Any]
 
@@ -25,6 +27,20 @@ class BookscanClient:
         self.session.headers.update({"User-Agent": self.settings.USER_AGENT})
         self.base_url: str = self.settings.BOOKSCAN_BASE_URL.rstrip("/")
         self.timeout: int = self.settings.HTTP_TIMEOUT
+        self._rl = RateLimiter(getattr(self.settings, "RATE_LIMIT_QPS", 0.0))
+
+    def _call_with_retry(self, fn, *args, **kwargs):
+        try:
+            for attempt in Retrying(
+                stop=stop_after_attempt(5),
+                wait=wait_random_exponential(multiplier=1, max=10),
+                retry=retry_if_exception_type(Exception),
+                reraise=True,
+            ):
+                with attempt:
+                    return fn(*args, **kwargs)
+        except Exception:
+            raise
 
     def login(self) -> None:
         """
@@ -46,7 +62,8 @@ class BookscanClient:
         try:
             # Cookie確立のためのウォームアップ
             try:
-                self.session.get(self.base_url, timeout=self.timeout).raise_for_status()
+                self._rl.throttle()
+                self._call_with_retry(self.session.get, self.base_url, timeout=self.timeout).raise_for_status()
             except Exception:
                 # base_urlへのウォームアップ失敗は無視（後続POSTで成功する可能性もある）
                 pass
@@ -66,7 +83,8 @@ class BookscanClient:
             if totp_field and totp_value:
                 payload[totp_field] = totp_value
 
-            self.session.post(login_url, data=payload, timeout=self.timeout).raise_for_status()
+            self._rl.throttle()
+            self._call_with_retry(self.session.post, login_url, data=payload, timeout=self.timeout).raise_for_status()
         except Exception:
             # M1では例外を伝播しない
             return
@@ -103,7 +121,8 @@ class BookscanClient:
                         pass
                 elif debug_src.startswith("http://") or debug_src.startswith("https://"):
                     try:
-                        resp = self.session.get(debug_src, timeout=self.timeout)
+                        self._rl.throttle()
+                        resp = self._call_with_retry(self.session.get, debug_src, timeout=self.timeout)
                         resp.raise_for_status()
                         html_docs = [resp.text]
                     except Exception:
@@ -145,7 +164,8 @@ class BookscanClient:
             for page in range(1, max_pages + 1):
                 url = template.replace("{page}", str(page)) if "{page}" in template else template
                 try:
-                    resp = self.session.get(url, timeout=self.timeout)
+                    self._rl.throttle()
+                    resp = self._call_with_retry(self.session.get, url, timeout=self.timeout)
                     resp.raise_for_status()
                     html = resp.text
                 except Exception:
@@ -180,7 +200,8 @@ class BookscanClient:
         dp.parent.mkdir(parents=True, exist_ok=True)
 
         if url.startswith("http://") or url.startswith("https://"):
-            resp = self.session.get(url, timeout=self.timeout)
+            self._rl.throttle()
+            resp = self._call_with_retry(self.session.get, url, timeout=self.timeout)
             resp.raise_for_status()
             dp.write_bytes(resp.content)
             return

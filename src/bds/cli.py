@@ -39,16 +39,16 @@ class SecretMaskFilter(logging.Filter):
     def __init__(self, secrets: Optional[List[str]] | None = None) -> None:
         self.secrets = [s for s in (secrets or []) if s]
 
-    def _mask(self, text: Any) -> str:
-        s = str(text)
+    def _mask(self, value: Any) -> Any:
+        # 文字列以外は型を保持してそのまま返す（%d/%f などのフォーマッタ互換を壊さない）
+        if not isinstance(value, str):
+            return value
+        s = value
         for secret in self.secrets:
             try:
                 if not secret:
                     continue
-                if len(secret) < 8:
-                    repl = "***"
-                else:
-                    repl = f"{secret[:2]}...{secret[-2:]}"
+                repl = "***" if len(secret) < 8 else f"{secret[:2]}...{secret[-2:]}"
                 s = s.replace(secret, repl)
             except Exception:
                 continue

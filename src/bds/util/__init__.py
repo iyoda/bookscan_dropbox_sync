@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import re
 import hashlib
+import time
+import threading
 from datetime import datetime, timezone
 from typing import Optional
 
@@ -64,3 +66,33 @@ def dropbox_content_hash(path: str, chunk_size: int = 4 * 1024 * 1024) -> str:
                 break
             overall.update(hashlib.sha256(chunk).digest())
     return overall.hexdigest()
+
+class RateLimiter:
+    """
+    単純なQPSベースのレートリミッタ（プロセス内・スレッドセーフ）。
+    - qps <= 0 の場合は無効（スロットルしない）
+    - acquire()/throttle() 呼び出しごとに最小間隔(1/qps)を確保
+    """
+    def __init__(self, qps: float) -> None:
+        try:
+            qps_val = float(qps)
+        except Exception:
+            qps_val = 0.0
+        self.min_interval: float = 1.0 / qps_val if qps_val > 0 else 0.0
+        self._last: float = 0.0
+        self._lock = threading.Lock()
+
+    def acquire(self) -> None:
+        if self.min_interval <= 0:
+            return
+        with self._lock:
+            now = time.monotonic()
+            sleep_for = self.min_interval - (now - self._last)
+            if sleep_for > 0:
+                time.sleep(sleep_for)
+                now = time.monotonic()
+            self._last = now
+
+    # alias
+    def throttle(self) -> None:
+        self.acquire()
