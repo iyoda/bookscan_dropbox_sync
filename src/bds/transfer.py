@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from .bookscan_client import BookscanClient
 from .config import Settings
 from .dropbox_client import DropboxClient
 from .state_store import StateStore
+from .util import dropbox_content_hash
 
 
 class TransferEngine:
@@ -44,6 +45,25 @@ class TransferEngine:
         if root_norm == "/":
             return f"/{rel_norm}"
         return f"{root_norm}/{rel_norm}"
+
+    def _append_version_suffix(self, path: str, version: int) -> str:
+        p = Path(path)
+        stem = p.stem
+        suffix = p.suffix
+        return str(p.with_name(f"{stem} (v{version}){suffix}"))
+
+    def _resolve_conflict_path(self, dest: str) -> str:
+        """
+        同名ファイルが既に存在する場合に、(v2), (v3), ... を付与して衝突しないパスを返す。
+        """
+        version = 2
+        candidate = dest
+        while True:
+            md = self.dropbox.get_metadata(candidate)
+            if not md.get("exists"):
+                return candidate
+            candidate = self._append_version_suffix(dest, version)
+            version += 1
 
     def run(self, plan: List[Dict[str, Any]], dry_run: bool = False) -> None:
         """
@@ -91,7 +111,7 @@ class TransferEngine:
                 item_for_download["pdf_url"] = entry["pdf_url"]
             self.bookscan.download(item_for_download, str(local_tmp))
 
-            # Dropboxへアップロード
+            # Dropboxへアップロード（重複回避）
             dst = self._dropbox_dest(relpath)
             # 中間フォルダがあれば作成
             if "/" in dst.strip("/"):
@@ -99,13 +119,32 @@ class TransferEngine:
                 if folder:
                     self.dropbox.ensure_folder(folder)
 
-            self.dropbox.upload_file(str(local_tmp), dst)
+            # ローカルファイルのDropbox-Content-Hashを計算
+            local_hash = dropbox_content_hash(str(local_tmp))
 
-            # State更新
+            md = self.dropbox.get_metadata(dst)
+            uploaded_path = dst
+            if md.get("exists") and md.get("type") == "file":
+                # 既存ファイルと同一内容ならアップロードせずスキップ
+                if str(md.get("content_hash") or "") == local_hash:
+                    uploaded_path = str(md.get("path") or dst)
+                else:
+                    # コンフリクト: リネームして保存
+                    uploaded_path = self._resolve_conflict_path(dst)
+                    self.dropbox.upload_file(str(local_tmp), uploaded_path)
+            else:
+                # 存在しないのでそのままアップロード
+                self.dropbox.upload_file(str(local_tmp), dst)
+
+            # State更新（ハッシュ/サイズを保存）
+            try:
+                size_val = int(entry.get("size") or local_tmp.stat().st_size)
+            except Exception:
+                size_val = 0
             meta: Dict[str, Any] = {
                 "updated_at": str(entry.get("updated_at") or ""),
-                "size": int(entry.get("size") or 0),
-                "hash": "",  # M1: 未計算
-                "dropbox_path": dst,
+                "size": size_val,
+                "hash": local_hash,
+                "dropbox_path": uploaded_path,
             }
             self.state_store.upsert_item(book_id, meta)

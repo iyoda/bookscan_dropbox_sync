@@ -76,7 +76,7 @@ Bookscan（ブックスキャンの電子書籍ダウンロードページ）か
   - Bookscanの利用規約に従うこと
   - レート制限/待機時間を十分に確保（ユーザ設定可）
 - 個人情報
-  - ログに資格情報や機微データを出力しない
+  - ログに資格情報や機微データを出力しない（CLIは SecretMaskFilter により DROPBOX_* や BOOKSCAN_* の値を自動マスク）
 - ネットワーク
   - TLS必須、検証有効化、ユーザエージェント明示
 
@@ -225,6 +225,13 @@ curl -s -u "$DROPBOX_APP_KEY:$DROPBOX_APP_SECRET" https://api.dropboxapi.com/oau
   HEADLESS=true
   HTTP_TIMEOUT=60
   ```
+
+### State backend（SQLite/移行）
+
+- 既定は JSON（.state/state.json）
+- `STATE_BACKEND=sqlite` と `STATE_PATH=.state/state.db` を指定すると SQLite を使用
+- 初回の SQLite 起動時、items テーブルが空で、同一パスの `.json`（例: `.state/state.json`）が存在する場合は自動でインポート（非破壊）
+- 手動移行したい場合は JSON を編集後に再実行
 
 - 参考ディレクトリ構成（実装時に追加）
   ```
@@ -408,13 +415,34 @@ STATE_PATH=.state/another.json python -m bds.cli list --source state
   - 更新日でのフィルタ等（例: `--since 2024-01-01`）を提供予定
 
 - ログ/詳細
-  - `--verbose` / `--json` ログ出力切替
+  - `--json-log` でJSON構造化ログを有効化
+  - `--log-file PATH` でログをファイル出力（パスまたはディレクトリ指定可。例: .logs/bds.log や .logs/）
+  - 例:
+    ```bash
+    python -m bds.cli sync --dry-run --json-log --log-file .logs/
+    python -m bds.cli list --json-log --log-file .logs/bookscan.log
+    ```
 
 - 認証補助
   - `python -m bds.cli login dropbox`
   - `python -m bds.cli login bookscan`
   - ブラウザを用いたOAuthフローを内蔵（将来）／現状は環境変数で代替
 
+
+### 主なオプション
+
+- --since YYYY-MM-DD: 更新日でフィルタ（指定日以降のみ対象）
+- --exclude-ext EXT: 除外する拡張子（複数指定可）
+- --min-size N, --max-size N: サイズで除外（バイト）
+- --exclude-keyword WORD: タイトルに含むキーワードで除外（複数指定可）
+- --json-log: ログをJSON形式にする
+- --log-file PATH: ログをファイルに出力（ディレクトリ指定可）
+
+### 終了コード
+
+- 0: 成功
+- 1: 実行時エラー（初期化/転送/I/O 等）
+- 2: 設定エラー（例: 非ドライラン時に DROPBOX_ACCESS_TOKEN 等が不足）
 
 ## 同期ポリシー
 
@@ -424,8 +452,8 @@ STATE_PATH=.state/another.json python -m bds.cli list --source state
   - 基本: 「著者/タイトル（シリーズ）/版/巻/ファイル名.pdf」を安全なファイル名に正規化
   - 記号/絵文字は置換、長すぎる名前は短縮
 - 重複/競合
-  - Dropbox上に同名がある場合はハッシュ/サイズ/更新日時で同一性を確認
-  - 差異がある場合は「(dup)」「(v2)」などのサフィックス付与、または上書きポリシー選択式
+  - Dropbox-Content-Hash で同一性を確認（同一ならスキップ、上書きしない）
+  - 差異がある場合は "(v2)", "(v3)" のサフィックスでリネーム保存（WriteMode.add）
 - 増分判定
   - Bookscan側ID＋更新日時＋サイズ/ハッシュをStateに記録
 - 除外/フィルタ
