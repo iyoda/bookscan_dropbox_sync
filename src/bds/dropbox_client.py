@@ -21,7 +21,10 @@ class DropboxClient:
     def __init__(self, settings: Settings) -> None:
         self.settings = settings
         self._dbx: Optional[dropbox.Dropbox] = None
-        self._rl = RateLimiter(getattr(self.settings, "RATE_LIMIT_QPS", 0.0))
+        qps = getattr(self.settings, "DROPBOX_RATE_LIMIT_QPS", None)
+        if qps is None:
+            qps = getattr(self.settings, "RATE_LIMIT_QPS", 0.0)
+        self._rl = RateLimiter(qps)
 
     def _client(self) -> dropbox.Dropbox:
         token = self.settings.DROPBOX_ACCESS_TOKEN

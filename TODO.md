@@ -109,16 +109,17 @@
 
 ## M3 信頼性/スケール
 
-- [ ] 転送の堅牢化
+- [x] 転送の堅牢化
   - [x] tenacityで指数バックオフ＋jitter
   - [x] チャンクアップロード（Dropbox SDK）
   - [x] DL/ULの整合性チェック（サイズ/ハッシュ）
-- [ ] 並行実行
+- [x] 並行実行
   - [x] スレッド/asyncいずれかで並列ダウンロード/アップロード
-  - [ ] レート制限/帯域制御（QPS/同時数）
-- [ ] エラーカタログ化
-  - [ ] リトライ可能/不可の分類
-  - [ ] 永続失敗の記録と再評価
+  - [x] レート制限/帯域制御（QPS/同時数）
+- [x] エラーカタログ化
+  - [x] リトライ可能/不可の分類（FailureStore._classify_exception）
+  - [x] 永続失敗の記録（JSONL/SQLite・FailureStore）
+  - [x] 失敗の再評価/再試行ポリシー
 
 受け入れ条件（M3）
 - [ ] 429/5xx が一定割合で発生しても全体が成功（リトライにより回復）
@@ -154,9 +155,9 @@
 
 ## M5 配布/運用
 
-- [ ] CI（GitHub Actions）
-  - [ ] lint / typecheck / test / coverage
-  - [ ] キャッシュ活用
+- [x] CI（GitHub Actions）
+  - [x] lint / typecheck / test / coverage
+  - [x] キャッシュ活用
 - [ ] リリース
   - [ ] バージョニング/タグ
   - [ ] CHANGELOG
@@ -182,7 +183,7 @@
 - [x] 機微情報をログ出力しない（マスク）
 - [x] .env/.state/.cache/.logs をgitignore
 - [x] UAとレート制限の明示（規約順守）
-- [ ] 依存脆弱性チェック（pip-audit 等）
+- [x] 依存脆弱性チェック（pip-audit 等）
 
 ---
 
@@ -193,7 +194,8 @@
 - [x] .env.example 整備
 - [x] 開発用デバッグ手順（BOOKSCAN_DEBUG_HTML_PATH）追記
 - [x] Dropbox OAuth手順（PKCE + Refresh Token）追記
-- [ ] 使い方（各サブコマンド）詳細
+- [x] RETRY_* 設定の説明
+- [x] 使い方（各サブコマンド）詳細
 - [ ] トラブルシュートの更新（CAPTCHA/TOTP/OAuth）
 - [ ] 貢献ガイド（任意）
 

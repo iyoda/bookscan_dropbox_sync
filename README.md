@@ -109,6 +109,29 @@ HTTP_TIMEOUT=60
 注意: 各サービスの規約を遵守し、必要に応じて RATE_LIMIT_QPS をさらに下げてください。
 
 
+### RETRY_* 設定の説明
+
+本ツールのリトライは TransferEngine により tenacity の指数バックオフ + jitter を用いて制御します。環境変数で以下を調整できます（.env で指定しない場合は既定値）。
+
+- RETRY_MAX_ATTEMPTS (int, 既定 3)
+  - 最大試行回数。1以上に丸められます。
+- RETRY_BACKOFF_MULTIPLIER (float, 既定 0.1)
+  - wait_random_exponential の multiplier。負値や0は安全側で 0.01 に補正されます。
+- RETRY_BACKOFF_MAX (float, 既定 2.0)
+  - バックオフの上限秒数。負値や0は安全側で 1.0 に補正されます。
+
+実装メモ:
+- 失敗のうち、FailureStore.classify_exception により retryable=True と分類されたもののみ再試行します（例: 429 Too Many Requests、5xx Server Error、ネットワーク一時障害など）。
+- Dropbox SDK 側にも独自のリトライがあり、RateLimitError 等では SDK が Retry-After を尊重してスリープします（max_retries_on_error/max_retries_on_rate_limit の既定あり）。
+- Bookscan HTTP アクセスには RateLimiter による最小間隔（QPS）も併用しています。
+
+例:
+```env
+RETRY_MAX_ATTEMPTS=3
+RETRY_BACKOFF_MULTIPLIER=0.1
+RETRY_BACKOFF_MAX=2.0
+```
+
 ## セットアップ
 
 - 前提
@@ -430,7 +453,7 @@ STATE_PATH=.state/another.json python -m bds.cli list --source state
 - デバッグ入力が無い場合、任意設定の `BOOKSCAN_LIST_URL_TEMPLATE` があればHTTPで取得します（{page}対応）。
 - いずれの場合も、`.download-item` 要素から簡易メタを抽出して表示します。
 
-## 使い方（実装予定のCLI）
+## 使い方（CLI）
 
 - 初回ドライラン
   - 変更を加えずに予定されるアップロードを一覧表示

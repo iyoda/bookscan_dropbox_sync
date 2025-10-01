@@ -44,12 +44,19 @@ class Settings(BaseSettings):
     SYNC_MODE: str = "incremental"  # incremental|full|dry-run
     CONCURRENCY: int = 2
     RATE_LIMIT_QPS: float = 0.5
+    BOOKSCAN_RATE_LIMIT_QPS: Optional[float] = None
+    DROPBOX_RATE_LIMIT_QPS: Optional[float] = None
     USER_AGENT: str = "bookscan-dropbox-sync/0.1 (+https://github.com/iyoda/bookscan_dropbox_sync)"
     HEADLESS: bool = True
     HTTP_TIMEOUT: int = 60
+    FAILURE_LOG_PATH: str = ".logs/failures.jsonl"
     # Dropbox チャンクアップロード設定（M3）
     DROPBOX_CHUNK_UPLOAD_THRESHOLD: int = 8 * 1024 * 1024  # 8MB以上はセッション方式
     DROPBOX_CHUNK_SIZE: int = 8 * 1024 * 1024  # セッション時のチャンクサイズ
+    # リトライ設定（M3）
+    RETRY_MAX_ATTEMPTS: int = 3
+    RETRY_BACKOFF_MULTIPLIER: float = 0.1
+    RETRY_BACKOFF_MAX: float = 2.0
 
     model_config = SettingsConfigDict(
         env_file=".env",

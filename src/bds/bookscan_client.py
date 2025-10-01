@@ -27,7 +27,10 @@ class BookscanClient:
         self.session.headers.update({"User-Agent": self.settings.USER_AGENT})
         self.base_url: str = self.settings.BOOKSCAN_BASE_URL.rstrip("/")
         self.timeout: int = self.settings.HTTP_TIMEOUT
-        self._rl = RateLimiter(getattr(self.settings, "RATE_LIMIT_QPS", 0.0))
+        qps = getattr(self.settings, "BOOKSCAN_RATE_LIMIT_QPS", None)
+        if qps is None:
+            qps = getattr(self.settings, "RATE_LIMIT_QPS", 0.0)
+        self._rl = RateLimiter(qps)
 
     def _call_with_retry(self, fn, *args, **kwargs):
         try:
