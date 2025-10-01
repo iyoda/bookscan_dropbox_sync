@@ -156,3 +156,11 @@ class DropboxClient:
         else:
             out.update({"type": "unknown"})
         return out
+
+    def revoke_token(self) -> None:
+        """
+        Revoke the current access token (auth_token_revoke).
+        """
+        dbx = self._client()
+        self._rl.throttle()
+        dbx.auth_token_revoke()

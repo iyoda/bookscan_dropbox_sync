@@ -101,6 +101,11 @@
     - [x] 実行時エラー（初期化/転送失敗）で code=1 を返す
     - [x] 設定エラー時（非ドライラン時のDROPBOX_ACCESS_TOKEN不足）で code=2 を返す
 
+- [x] Bookscan HTML 直解析強化（変換不要での開発を支援）
+  - [x] showbook.php から id/title/pdf_url を抽出
+  - [x] bookshelf_all_list.php から showbook リンク抽出
+  - [x] `/download.php?...` のルート相対URLを `BOOKSCAN_BASE_URL` と結合して取得
+
 受け入れ条件（M2）
 - [x] `--since` 等のフィルタが機能し、結果がドライランに反映
 - [x] 同名重複時の期待どおりの挙動（上書きしない/リネーム）
@@ -136,11 +141,11 @@
   - [ ] ローカルリダイレクトURI（http://localhost:53682/callback）ハンドラ
   - [ ] refresh_token の安全な保存（.env もしくはKeychain/1Password; 将来切替可能）
   - [ ] access_token 自動更新（refresh）と失効時の再認可ハンドリング
-  - [ ] `login dropbox` コマンド（ブラウザ起動/手動コード入力フォールバック）
-  - [ ] `logout dropbox` コマンド（/2/auth/token/revoke）
+  - [x] `login dropbox` コマンド（ブラウザ起動/手動コード入力フォールバック）
+  - [x] `logout dropbox` コマンド（/2/auth/token/revoke）
   - [ ] DROPBOX_TOKEN_ROTATE フラグの運用/テスト
 - [ ] Bookscan 2FA/TOTP
-  - [ ] pyotp対応（環境変数 or 対話入力）
+  - [x] TOTP自動生成対応（環境変数 BOOKSCAN_TOTP_SECRET）
 - [ ] Playwrightフォールバック（必要時）
   - [ ] Bot検知/CAPTCHA時のみ切替
   - [ ] Cookie移行/セッション維持
@@ -196,8 +201,8 @@
 - [x] Dropbox OAuth手順（PKCE + Refresh Token）追記
 - [x] RETRY_* 設定の説明
 - [x] 使い方（各サブコマンド）詳細
-- [ ] トラブルシュートの更新（CAPTCHA/TOTP/OAuth）
-- [ ] 貢献ガイド（任意）
+- [x] トラブルシュートの更新（CAPTCHA/TOTP/OAuth）
+- [x] 貢献ガイド（任意）
 
 ---
 

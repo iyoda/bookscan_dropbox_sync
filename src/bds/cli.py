@@ -14,6 +14,8 @@ app = typer.Typer(no_args_is_help=True, add_completion=False, help="Bookscan→D
 
 # sync サブコマンド
 sync_app = typer.Typer(help="Bookscan→Dropbox 同期CLI")
+login_app = typer.Typer(help="ログイン補助（Dropbox/Bookscan）")
+logout_app = typer.Typer(help="ログアウト/トークン失効")
 
 
 class JsonFormatter(logging.Formatter):
@@ -405,6 +407,112 @@ def list_cmd(
 
 app.add_typer(sync_app, name="sync")
 app.add_typer(list_app, name="list")
+app.add_typer(login_app, name="login")
+app.add_typer(logout_app, name="logout")
+
+
+# ---- login subcommands ----
+@login_app.command("dropbox")
+def login_dropbox(
+    open_browser: bool = typer.Option(True, "--open-browser/--no-open-browser", help="認可URLをブラウザで開く"),
+    redirect_uri: str = typer.Option("http://localhost:53682/callback", help="Redirect URI"),
+    scopes: str = typer.Option(
+        "files.metadata.read files.metadata.write files.content.read files.content.write",
+        help="スペース区切りのスコープ",
+    ),
+    code: Optional[str] = typer.Option(None, help="認可コード（取得後に交換する場合に指定）"),
+    code_verifier: Optional[str] = typer.Option(None, help="PKCEのcode_verifier（交換時に必要）"),
+) -> None:
+    """
+    Dropbox OAuth (PKCE) の補助。二段階で利用:
+    1) 認可URLを生成（--open-browser）→ code を取得
+    2) 取得した code と code_verifier を渡してトークン交換
+    """
+    settings = load_settings()
+    app_key = getattr(settings, "DROPBOX_APP_KEY", None)
+    if not app_key:
+        typer.secho("設定エラー: DROPBOX_APP_KEY を設定してください", fg=typer.colors.RED)
+        raise typer.Exit(code=2)
+
+    import base64, hashlib, os, webbrowser, requests  # type: ignore
+
+    def _mk_verifier() -> str:
+        raw = base64.urlsafe_b64encode(os.urandom(64)).rstrip(b"=")
+        return raw.decode()
+
+    def _challenge_from(verifier: str) -> str:
+        d = hashlib.sha256(verifier.encode()).digest()
+        return base64.urlsafe_b64encode(d).decode().rstrip("=")
+
+    if code:
+        # Exchange code -> tokens
+        if not code_verifier:
+            typer.secho("code_verifier が必要です (--code-verifier)", fg=typer.colors.RED)
+            raise typer.Exit(code=2)
+        try:
+            resp = requests.post(
+                "https://api.dropboxapi.com/oauth2/token",
+                data={
+                    "grant_type": "authorization_code",
+                    "code": code,
+                    "client_id": app_key,
+                    "code_verifier": code_verifier,
+                    "redirect_uri": redirect_uri,
+                },
+                timeout=30,
+            )
+            resp.raise_for_status()
+            typer.echo(resp.text)
+            return
+        except Exception as e:
+            typer.secho(f"交換に失敗しました: {e}", fg=typer.colors.RED)
+            raise typer.Exit(code=1)
+
+    # Step 1: Create challenge and URL
+    verifier = _mk_verifier()
+    challenge = _challenge_from(verifier)
+    scope_enc = scopes.replace(" ", "%20")
+    auth_url = (
+        "https://www.dropbox.com/oauth2/authorize?client_id="
+        f"{app_key}&response_type=code&token_access_type=offline&code_challenge={challenge}"
+        f"&code_challenge_method=S256&redirect_uri={redirect_uri}&scope={scope_enc}"
+    )
+    typer.echo("Authorization URL:")
+    typer.echo(auth_url)
+    typer.echo("\ncode_verifier (保存して次のステップで使用):")
+    typer.echo(verifier)
+    if open_browser:
+        try:
+            webbrowser.open(auth_url)
+        except Exception:
+            pass
+
+
+@login_app.command("bookscan")
+def login_bookscan() -> None:
+    """
+    Bookscan ログインは現在、環境変数（BOOKSCAN_EMAIL/PASSWORD/TOTP_SECRET）で行います。
+    CLIの対話ログインは未実装です。
+    """
+    typer.echo("Bookscan ログインは環境変数で設定してください（CLI未実装）")
+
+
+# ---- logout subcommands ----
+@logout_app.command("dropbox")
+def logout_dropbox() -> None:
+    """
+    現在のアクセストークンを失効させます（/2/auth/token/revoke）。
+    """
+    settings = load_settings()
+    try:
+        from .dropbox_client import DropboxClient
+
+        client = DropboxClient(settings)
+        client.revoke_token()
+        typer.echo("Dropboxトークンを失効しました。")
+    except Exception as e:
+        typer.secho(f"失敗しました: {e}", fg=typer.colors.RED)
+        raise typer.Exit(code=1)
 
 if __name__ == "__main__":
     app()

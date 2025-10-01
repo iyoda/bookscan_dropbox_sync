@@ -6,6 +6,8 @@ import time
 import threading
 from datetime import datetime, timezone
 from typing import Optional
+import base64
+import hmac
 
 
 def safe_filename(name: str, max_length: int = 150) -> str:
@@ -96,3 +98,40 @@ class RateLimiter:
     # alias
     def throttle(self) -> None:
         self.acquire()
+
+
+# ---- TOTP (RFC 6238) ----
+def _base32_decode_no_padding(secret: str) -> bytes:
+    s = secret.strip().replace(" ", "").upper()
+    # Add padding for base32 if missing
+    pad_len = (-len(s)) % 8
+    if pad_len:
+        s += "=" * pad_len
+    return base64.b32decode(s, casefold=True)
+
+
+def totp(secret: str, t: Optional[int] = None, step: int = 30, digits: int = 6) -> str:
+    """
+    Generate TOTP code (SHA-1) from a base32 secret.
+    - secret: base32-encoded shared secret (spaces allowed)
+    - t: unix time seconds (defaults to now)
+    - step: time step in seconds (default 30)
+    - digits: number of digits (6 or 8 typical)
+    """
+    if t is None:
+        t = int(time.time())
+    counter = int(t // step)
+    key = _base32_decode_no_padding(secret)
+    # 8-byte big-endian counter
+    msg = counter.to_bytes(8, byteorder="big", signed=False)
+    digest = hmac.new(key, msg, hashlib.sha1).digest()
+    # dynamic truncation
+    offset = digest[-1] & 0x0F
+    bin_code = (
+        ((digest[offset] & 0x7F) << 24)
+        | ((digest[offset + 1] & 0xFF) << 16)
+        | ((digest[offset + 2] & 0xFF) << 8)
+        | (digest[offset + 3] & 0xFF)
+    )
+    otp = bin_code % (10 ** digits)
+    return str(otp).zfill(digits)

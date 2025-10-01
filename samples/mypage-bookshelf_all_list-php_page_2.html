@@ -1,0 +1,991 @@
+<!doctype html>
+<html lang="ja"><head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=1280" />
+    <title>BOOKSCAN(ブックスキャン) 蔵書電子書籍化サービス - マイ本棚</title>
+
+
+<meta name="description" content="蔵書の電子書籍化サービス。">
+<meta name="keywords" content="マイ本棚｜電子書籍化,ブックスキャン,蔵書,本">
+<meta name="robots" content="noindex" />
+<meta property="og:title" content="BOOKSCAN(ブックスキャン) 蔵書電子書籍化サービス" />
+<meta property="og:type" content="article" />
+<meta property="og:description" content="蔵書の電子書籍化サービス。" />
+<meta property="og:url" content="https://www.bookscan.co.jp/" />
+<meta property="og:image" content="https://www.bookscan.co.jp/../../public/assets/image/safe_image.png" />
+<meta property="og:site_name" content="BOOKSCAN" />
+<meta property="og:locale" content="ja_JP" />
+<link href="/mypage/assets/css/reset.css?2147c40b3acfcc5c8a2baa848f463cc68b93ad75" rel="stylesheet" type="text/css">
+<link href="/mypage/assets/css/base.css?2147c40b3acfcc5c8a2baa848f463cc68b93ad75" rel="stylesheet" type="text/css">
+<link href="/mypage/assets/css/common.css?2147c40b3acfcc5c8a2baa848f463cc68b93ad75" rel="stylesheet" type="text/css">
+<link href="/mypage/assets/css/jquery.fancybox.css?2147c40b3acfcc5c8a2baa848f463cc68b93ad75" rel="stylesheet" type="text/css">
+<link href="/mypage/assets/css/magnific-popup.css?2147c40b3acfcc5c8a2baa848f463cc68b93ad75" rel="stylesheet" type="text/css">
+<link rel="shortcut icon" href="../images/book--arrow.png" />
+<script src="/mypage/assets/js/jquery-1.8.3.min.js"></script>
+<script src="/mypage/assets/js/jquery.easing.1.3.js"></script>
+<script src="/mypage/assets/js/jquery.bottom-1.0.js"></script>
+<script src="/mypage/assets/js/idx.js"></script>
+<script src="/mypage/assets/js/jquery.fancybox.pack.js"></script>
+<script src="/mypage/assets/js/jquery.magnific-popup.min.js"></script>
+<script type="text/javascript">
+window.onpageshow = function(event){
+	if(event.persisted){
+		window.location.reload();
+	}
+};
+</script>
+<script src="https://www.promisejs.org/polyfills/promise-7.0.4.min.js"></script>
+<script src="/js/es6/array_includes.js"></script>
+<script src="/js/es6/assign.js"></script>
+<script>
+    window.routing={"path":"/mypage/bookshelf_all_list.php?&page=2","file":"bookshelf_all_list.php", "option":""};
+</script>
+<link href="/js/es6/style.css?2147c40b3acfcc5c8a2baa848f463cc68b93ad75" rel="stylesheet" type="text/css">
+<script src="/js/es6/bundle.js?2147c40b3acfcc5c8a2baa848f463cc68b93ad75"></script>
+
+<!--[if lt IE 9]>
+<script src="/mypage/assets/js/html5shiv.js"></script>
+<![endif]-->
+
+    <meta http-equiv="Content-Type" content="text/html">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Cache-Control" content="no-cache">
+    <link href="/mypage/assets/css/myhondana.css?2147c40b3acfcc5c8a2baa848f463cc68b93ad75" rel="stylesheet" type="text/css">
+</head>
+
+<body>
+
+<!--ヘッダー-->
+      <script>
+    (function (i, s, o, g, r, a, m) {
+      i['GoogleAnalyticsObject'] = r;
+      i[r] = i[r] || function () {
+        (i[r].q = i[r].q || []).push(arguments)
+      }, i[r].l = 1 * new Date();
+      a = s.createElement(o),
+        m = s.getElementsByTagName(o)[0];
+      a.async = 1;
+      a.src = g;
+      m.parentNode.insertBefore(a, m)
+    })(window, document, 'script', 'https://www.google-analytics.com/analytics.js', 'ga');
+
+    ga('create', 'UA-15844066-5', 'auto');
+    ga('send', 'pageview');
+  </script>
+
+      <script>(function (w, d, s, l, i) {
+      w[l] = w[l] || [];
+      w[l].push({
+        'gtm.start':
+          new Date().getTime(), event: 'gtm.js'
+      });
+      var f = d.getElementsByTagName(s)[0],
+        j = d.createElement(s), dl = l != 'dataLayer' ? '&l=' + l : '';
+      j.async = true;
+      j.src =
+        'https://www.googletagmanager.com/gtm.js?id=' + i + dl;
+      f.parentNode.insertBefore(j, f);
+    })(window, document, 'script', 'dataLayer', 'GTM-NG6H8J7');
+  </script>
+  <noscript>
+    <iframe src="https://www.googletagmanager.com/ns.html?id=GTM-NG6H8J7"
+            height="0" width="0" style="display:none;visibility:hidden"></iframe>
+  </noscript>
+<script type="text/javascript">
+    window._mfq = window._mfq || [];
+    (function () {
+        var mf = document.createElement("script");
+        mf.type = "text/javascript";
+        mf.async = true;
+        mf.src = "//cdn.mouseflow.com/projects/994441ef-ca13-426a-b64a-fe48bba25d87.js";
+        document.getElementsByTagName("head")[0].appendChild(mf);
+    })();
+    window._mfq.push(["setVariable", "user_id", "11770"]);
+    </script>
+<header>
+    <div class="head_wrap">
+
+        <hgroup><a href="/mypage/mypage.php">
+                <h1>ブックスキャン</h1>
+                <h2>世界中の本好きのために</h2>
+            </a></hgroup>
+
+        <nav id="mainnavi">
+            <span id="navi_btn">ナビゲーション</span>
+            <ul>
+                <li><a href="https://www.bookscan.co.jp/service.html">サービス案内</a></li>
+                <li><a href="https://www.bookscan.co.jp/company.html">会社概要</a></li>
+                <li><a href="https://www.bookscan.co.jp/price.html">料金</a></li>
+                <li><a href="https://www.bookscan.co.jp/voice.html">お客様の声</a></li>
+                <li><a href="https://www.bookscan.co.jp/media.html">メディア紹介実績</a></li>
+                <li><a href="https://www.bookscan.co.jp/pressrelease">プレスリリース</a></li>
+                <li><a href="https://www.bookscan.co.jp/interviewlist">著者インタビュー</a></li>
+            </ul>
+        </nav>
+
+		         <div id="subnavi">
+            <a href="?logout=1" class="logout">ログアウト</a>
+            <p><a href="/mypage/user_modify.php">伊与田陸様(No.11770)</a></p>
+        </div>
+                                  
+    </div>
+</header>
+
+<!--/ヘッダー-->
+
+
+<!--wrapper-->
+<div id="wrapper">
+
+    <!-- チューニング用コメント-->
+        <!-- /チューニング用コメント-->
+
+    <!--contents_wrap-->
+    <div id="contents_wrap">
+        <div id="main">
+            <!--contents-->
+            <article id="contents">
+                <!--本棚検索-->
+
+<!--チューニングラボから端末登録を初めてしてきた時のGET値。本棚表示形式を変更しても引き継ぐために再度セット-->
+
+<div id="hondana_title_wrap">
+    <h1 class="hondana_title">
+        マイ本棚        (1,123冊)
+    </h1>
+</div>
+
+<div id="hondana_search">
+    <form id="searchform" method="get">
+        <div class="label_box">
+          <span class="label_box__title">キーワード</span>
+          <input id="keywords" name="q" placeholder="キーワードを入力してください" type="text" value="" />
+        </div>
+                                  <div id="submitBtnWrap" class="btn_wrap"><button type="button" id="submit">検索</button></div>
+        <input style="display:none;" name="submit" value="検索" type="submit" id="submit_btn"/>
+                <!--チューニングラボから端末登録してきた時のヘッダーメッセージを引き継ぐ-->
+                    </form>
+    <div style="display:none;">
+    <div id="hondana_skin">
+        <h2 id="hondana_skin_title">本棚背景の変更</h2>
+        <div id="hondana_skin_inner">
+            <p id="hondana_skin_text">本棚の背景を変更することができます。下記からお好きな本棚背景を選択して、変更するボタンを押してください。</p>
+            <ul id="hondana_skin_list">
+                                    <li>
+                        <label>
+                            <input type="radio" name="skin"
+                                   value="default" checked="checked""/>
+                            <div><img src="/mypage/assets/img/common/skin_original.png" width="124" height="158"
+                                      alt=""/>
+                            </div>
+                            <p>デフォルト</p>
+                        </label>
+                    </li>
+                                    <li>
+                        <label>
+                            <input type="radio" name="skin"
+                                   value="classic" "/>
+                            <div><img src="/mypage/assets/img/common/skin_classic.png" width="124" height="158"
+                                      alt=""/>
+                            </div>
+                            <p>クラシック</p>
+                        </label>
+                    </li>
+                                    <li>
+                        <label>
+                            <input type="radio" name="skin"
+                                   value="natural" "/>
+                            <div><img src="/mypage/assets/img/common/skin_natural.png" width="124" height="158"
+                                      alt=""/>
+                            </div>
+                            <p>ナチュラル</p>
+                        </label>
+                    </li>
+                                    <li>
+                        <label>
+                            <input type="radio" name="skin"
+                                   value="brown" "/>
+                            <div><img src="/mypage/assets/img/common/skin_brown.png" width="124" height="158"
+                                      alt=""/>
+                            </div>
+                            <p>ブラウン</p>
+                        </label>
+                    </li>
+                                    <li>
+                        <label>
+                            <input type="radio" name="skin"
+                                   value="dark" "/>
+                            <div><img src="/mypage/assets/img/common/skin_dark.png" width="124" height="158"
+                                      alt=""/>
+                            </div>
+                            <p>ダーク</p>
+                        </label>
+                    </li>
+                            </ul>
+            <div class="btn-box">
+                <div class="btn-wrap"><input type="button" name="removeType" class="btn_big05 black" value="キャンセル"
+                                             data-save-type="delete" onclick="skin_change(false);"></div>
+                <div class="btn-wrap"><input type="button" name="saveType" class="btn_big05" value="変更する"
+                                             data-save-type="save" onclick="skin_change(true);"></div>
+            </div>
+            <!--/#hondana_skin_inner--></div>
+        <!--/#hondana_skin--></div>
+</div>
+<script>
+    var positionKey = "";
+    $(function () {
+        $("#hondana_switch .switch05").magnificPopup({
+            type: 'inline',
+            closeOnContentClick: false,
+        });
+    });
+
+    function skin_change(flag) {
+        if (flag == true) {
+            var theme = $("[name=skin]:checked").val();
+            $("#hondana_hyoushi,#hondana_sebyoushi").hide().removeClass().addClass(theme).fadeIn();
+            var postParams = {theme: theme, position_key: positionKey};
+            var url = "/api/book_shelf_theme/current_theme.php";
+            $.ajax({
+                url: url,
+                type: 'POST',
+                data: postParams,
+                dataType: 'json',
+            }).done(function (data) {
+                // console.log(data);
+            });
+        }
+        $.magnificPopup.close();
+        return false;
+    }
+</script>
+</div>
+
+<link rel="stylesheet" href="/mypage/assets/css/flatpickr/flatpickr.min.css">
+<link rel="stylesheet" href="/mypage/assets/css/flatpickr/style.css">
+
+<script src="/mypage/assets/js/flatpickr/flatpickr.js"></script>
+<script src="/mypage/assets/js/flatpickr/ja.js"></script>
+<script src="/mypage/assets/js/flatpickr/index.js"></script>
+
+<script>
+  config = {
+    locale: "ja",
+    altInput: true,
+    plugins: [
+      new monthSelectPlugin({
+        dateFormat: "Y-m",
+        altFormat: "Y年M"
+      })
+    ]
+  };
+  flatpickr('.datepicker_start', config);
+  flatpickr('.datepicker_end', config);
+</script>
+
+
+
+
+	<script>
+		$("#submit").click(function(){
+			$("#submit_btn").trigger("click");
+		});
+	</script>
+
+
+                <!--/本棚検索-->
+
+<section id="hondana_list">
+    <div id="hondana_list_head">
+    <ul id="hondana_list_navi01">
+        <script>
+  function onSortSelectedChange(elem) {
+    var $target = $(elem);
+    var url = $target.val();
+    location.href = url;
+  }
+</script>
+<div class="sort_select_wrap">
+<select class="sort_select" onChange="onSortSelectedChange(this)">
+      <option
+        value="?&page=2&sort=s" selected>
+      スキャン順    </option>
+      <option
+        value="?&page=2&sort=a" >
+      ファイル名昇順    </option>
+      <option
+        value="?&page=2&sort=d" >
+      ファイル名降順    </option>
+  </select>
+</div>
+    </ul>
+<script>
+if(!$("#hondana_list_navi01").find(".select").size()){
+	$("#hondana_list_navi01 li:last-child").find("a").addClass("select");
+}
+</script>
+
+    <!-- ページ上部ページャ -->
+    <ul class="left hondana_list_pagenavi01">
+    </ul>
+
+        <ul id="hondana_switch">
+            <li><a href="/mypage/bookshelf_all_cover.php?q=&sort=s"
+                   class="switch01 ">表紙</a>
+            </li>
+            <li><a href="/mypage/bookshelf_all_spain.php?q=&sort=s"
+                   class="switch02 ">背表紙</a>
+            </li>
+            <li><a href="/mypage/bookshelf_all_list.php?q=&sort=s"
+                   class="switch03  select ">リスト</a>
+            </li>
+                                </ul>
+            </div> <!-- // hondana_list_head -->
+    <!-- // ページ上部ページャ -->
+
+
+    <div class="loader search-loading-list">
+        <p>検索中</p>
+        <div class="loader-inner ball-pulse">
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+        </div>
+    <!--/#search-loading--></div>
+
+    <div class="search-loading-list">
+        <dl class="search_index_list01">
+            <dt>&nbsp;</dt>
+            <dd>
+                <div class="search_detail_border"></div>
+                <div class="search_detail_border"></div>
+                <div class="search_detail_border"></div>
+                <div class="search_detail_border"></div>
+            </dd>
+        </dl>
+        <dl class="search_index_list01">
+            <dt>&nbsp;</dt>
+            <dd>
+                <div class="search_detail_border"></div>
+                <div class="search_detail_border"></div>
+                <div class="search_detail_border"></div>
+                <div class="search_detail_border"></div>
+            </dd>
+        </dl>
+        <dl class="search_index_list01">
+            <dt>&nbsp;</dt>
+            <dd>
+                <div class="search_detail_border"></div>
+                <div class="search_detail_border"></div>
+                <div class="search_detail_border"></div>
+                <div class="search_detail_border"></div>
+            </dd>
+        </dl>
+        <dl class="search_index_list01">
+            <dt>&nbsp;</dt>
+            <dd>
+                <div class="search_detail_border"></div>
+                <div class="search_detail_border"></div>
+                <div class="search_detail_border"></div>
+                <div class="search_detail_border"></div>
+            </dd>
+        </dl>
+    <!--/#search-loading-list--></div>
+
+
+    <!-- 本棚 リスト -->
+    <ul id="hondana_list">
+    <li class="hondana_list01 ">
+            <input type="hidden" name="order_ids[]" class="order_ids" value="303130312d323031333032323530393330323233353032303134303930373137343234323239375f636865636b2e706466">
+            <a id="start_fancybox" class="fancybox" href="/mypage/showbook.php?h=f6ddee01ce2cb23e98ff1b808c0b7cad&d=4d5445334e7a41744d6a49344d4467344c5445774d4330774c5441744d413d3d&f=0101-2013022509302235020140907174242297_check.pdf&oid=228088&ocode=11770-228088-100-0-0-0&uid=11770&bid=6079373&search_word=&published_on=">
+            <div class="hondana_list_img"><img src="/mypage/assets/img/common/noimage2.png" alt="0101-2013022509302235020140907174242297_check.pdf" title="0101-2013022509302235020140907174242297_check.pdf" data-original="/mypage/assets/img/common/noimage2.png" data-amazon-path="/mypage/assets/img/common/noimage2.png" /></div>
+            <div class="hondana_list_contents">
+            <h3>0101-2013022509302235020140907174242297_check.pdf</h3>
+            <div class="hondana_list_contents_inner">
+            <!-- リスト画面での要約はコメントアウトしておく -->
+            <!-- <p class="hondana_list_contents_status status01">要約あり</p> -->
+            <p class="hondana_list_contents_number">11770-228088-100-0-0-0</p>
+            </div>
+            </div></a></li><li class="hondana_list01 ">
+            <input type="hidden" name="order_ids[]" class="order_ids" value="303130312d323031333032323530393330323233353032303134303930373137343230343130385f636865636b2e706466">
+            <a id="start_fancybox" class="fancybox" href="/mypage/showbook.php?h=f6ddee01ce2cb23e98ff1b808c0b7cad&d=4d5445334e7a41744d6a49344d4467344c5445774d4330774c5441744d413d3d&f=0101-2013022509302235020140907174204108_check.pdf&oid=228088&ocode=11770-228088-100-0-0-0&uid=11770&bid=6079411&search_word=&published_on=">
+            <div class="hondana_list_img"><img src="/mypage/assets/img/common/noimage2.png" alt="0101-2013022509302235020140907174204108_check.pdf" title="0101-2013022509302235020140907174204108_check.pdf" data-original="/mypage/assets/img/common/noimage2.png" data-amazon-path="/mypage/assets/img/common/noimage2.png" /></div>
+            <div class="hondana_list_contents">
+            <h3>0101-2013022509302235020140907174204108_check.pdf</h3>
+            <div class="hondana_list_contents_inner">
+            <!-- リスト画面での要約はコメントアウトしておく -->
+            <!-- <p class="hondana_list_contents_status status01">要約あり</p> -->
+            <p class="hondana_list_contents_number">11770-228088-100-0-0-0</p>
+            </div>
+            </div></a></li><li class="hondana_list01 ">
+            <input type="hidden" name="order_ids[]" class="order_ids" value="303130312d323031333032323530393330323233353032303134303930373137343132383530395f636865636b2e706466">
+            <a id="start_fancybox" class="fancybox" href="/mypage/showbook.php?h=f6ddee01ce2cb23e98ff1b808c0b7cad&d=4d5445334e7a41744d6a49344d4467344c5445774d4330774c5441744d413d3d&f=0101-2013022509302235020140907174128509_check.pdf&oid=228088&ocode=11770-228088-100-0-0-0&uid=11770&bid=6079421&search_word=&published_on=">
+            <div class="hondana_list_img"><img src="/mypage/assets/img/common/noimage2.png" alt="0101-2013022509302235020140907174128509_check.pdf" title="0101-2013022509302235020140907174128509_check.pdf" data-original="/mypage/assets/img/common/noimage2.png" data-amazon-path="/mypage/assets/img/common/noimage2.png" /></div>
+            <div class="hondana_list_contents">
+            <h3>0101-2013022509302235020140907174128509_check.pdf</h3>
+            <div class="hondana_list_contents_inner">
+            <!-- リスト画面での要約はコメントアウトしておく -->
+            <!-- <p class="hondana_list_contents_status status01">要約あり</p> -->
+            <p class="hondana_list_contents_number">11770-228088-100-0-0-0</p>
+            </div>
+            </div></a></li><li class="hondana_list01 ">
+            <input type="hidden" name="order_ids[]" class="order_ids" value="303130312d323031333032323530393330323233353032303134303930373137343132353837395f636865636b2e706466">
+            <a id="start_fancybox" class="fancybox" href="/mypage/showbook.php?h=f6ddee01ce2cb23e98ff1b808c0b7cad&d=4d5445334e7a41744d6a49344d4467344c5445774d4330774c5441744d413d3d&f=0101-2013022509302235020140907174125879_check.pdf&oid=228088&ocode=11770-228088-100-0-0-0&uid=11770&bid=6079382&search_word=&published_on=">
+            <div class="hondana_list_img"><img src="/mypage/assets/img/common/noimage2.png" alt="0101-2013022509302235020140907174125879_check.pdf" title="0101-2013022509302235020140907174125879_check.pdf" data-original="/mypage/assets/img/common/noimage2.png" data-amazon-path="/mypage/assets/img/common/noimage2.png" /></div>
+            <div class="hondana_list_contents">
+            <h3>0101-2013022509302235020140907174125879_check.pdf</h3>
+            <div class="hondana_list_contents_inner">
+            <!-- リスト画面での要約はコメントアウトしておく -->
+            <!-- <p class="hondana_list_contents_status status01">要約あり</p> -->
+            <p class="hondana_list_contents_number">11770-228088-100-0-0-0</p>
+            </div>
+            </div></a></li><li class="hondana_list01 ">
+            <input type="hidden" name="order_ids[]" class="order_ids" value="303130312d323031333032323530393330323233353032303134303930373137343035313338315f636865636b2e706466">
+            <a id="start_fancybox" class="fancybox" href="/mypage/showbook.php?h=f6ddee01ce2cb23e98ff1b808c0b7cad&d=4d5445334e7a41744d6a49344d4467344c5445774d4330774c5441744d413d3d&f=0101-2013022509302235020140907174051381_check.pdf&oid=228088&ocode=11770-228088-100-0-0-0&uid=11770&bid=6079385&search_word=&published_on=">
+            <div class="hondana_list_img"><img src="/mypage/assets/img/common/noimage2.png" alt="0101-2013022509302235020140907174051381_check.pdf" title="0101-2013022509302235020140907174051381_check.pdf" data-original="/mypage/assets/img/common/noimage2.png" data-amazon-path="/mypage/assets/img/common/noimage2.png" /></div>
+            <div class="hondana_list_contents">
+            <h3>0101-2013022509302235020140907174051381_check.pdf</h3>
+            <div class="hondana_list_contents_inner">
+            <!-- リスト画面での要約はコメントアウトしておく -->
+            <!-- <p class="hondana_list_contents_status status01">要約あり</p> -->
+            <p class="hondana_list_contents_number">11770-228088-100-0-0-0</p>
+            </div>
+            </div></a></li><li class="hondana_list01 ">
+            <input type="hidden" name="order_ids[]" class="order_ids" value="303130312d323031333032323530393330323233353032303134303930373137343032343237355f636865636b2e706466">
+            <a id="start_fancybox" class="fancybox" href="/mypage/showbook.php?h=f6ddee01ce2cb23e98ff1b808c0b7cad&d=4d5445334e7a41744d6a49344d4467344c5445774d4330774c5441744d413d3d&f=0101-2013022509302235020140907174024275_check.pdf&oid=228088&ocode=11770-228088-100-0-0-0&uid=11770&bid=6079404&search_word=&published_on=">
+            <div class="hondana_list_img"><img src="/mypage/assets/img/common/noimage2.png" alt="0101-2013022509302235020140907174024275_check.pdf" title="0101-2013022509302235020140907174024275_check.pdf" data-original="/mypage/assets/img/common/noimage2.png" data-amazon-path="/mypage/assets/img/common/noimage2.png" /></div>
+            <div class="hondana_list_contents">
+            <h3>0101-2013022509302235020140907174024275_check.pdf</h3>
+            <div class="hondana_list_contents_inner">
+            <!-- リスト画面での要約はコメントアウトしておく -->
+            <!-- <p class="hondana_list_contents_status status01">要約あり</p> -->
+            <p class="hondana_list_contents_number">11770-228088-100-0-0-0</p>
+            </div>
+            </div></a></li><li class="hondana_list01 ">
+            <input type="hidden" name="order_ids[]" class="order_ids" value="303130312d323031333032323530393330323233353032303134303930373137333934363730335f636865636b2e706466">
+            <a id="start_fancybox" class="fancybox" href="/mypage/showbook.php?h=f6ddee01ce2cb23e98ff1b808c0b7cad&d=4d5445334e7a41744d6a49344d4467344c5445774d4330774c5441744d413d3d&f=0101-2013022509302235020140907173946703_check.pdf&oid=228088&ocode=11770-228088-100-0-0-0&uid=11770&bid=6079364&search_word=&published_on=">
+            <div class="hondana_list_img"><img src="/mypage/assets/img/common/noimage2.png" alt="0101-2013022509302235020140907173946703_check.pdf" title="0101-2013022509302235020140907173946703_check.pdf" data-original="/mypage/assets/img/common/noimage2.png" data-amazon-path="/mypage/assets/img/common/noimage2.png" /></div>
+            <div class="hondana_list_contents">
+            <h3>0101-2013022509302235020140907173946703_check.pdf</h3>
+            <div class="hondana_list_contents_inner">
+            <!-- リスト画面での要約はコメントアウトしておく -->
+            <!-- <p class="hondana_list_contents_status status01">要約あり</p> -->
+            <p class="hondana_list_contents_number">11770-228088-100-0-0-0</p>
+            </div>
+            </div></a></li><li class="hondana_list01 ">
+            <input type="hidden" name="order_ids[]" class="order_ids" value="303130312d323031333032323530393330323233353032303134303930373137333932383735345f636865636b2e706466">
+            <a id="start_fancybox" class="fancybox" href="/mypage/showbook.php?h=f6ddee01ce2cb23e98ff1b808c0b7cad&d=4d5445334e7a41744d6a49344d4467344c5445774d4330774c5441744d413d3d&f=0101-2013022509302235020140907173928754_check.pdf&oid=228088&ocode=11770-228088-100-0-0-0&uid=11770&bid=6079378&search_word=&published_on=">
+            <div class="hondana_list_img"><img src="/mypage/assets/img/common/noimage2.png" alt="0101-2013022509302235020140907173928754_check.pdf" title="0101-2013022509302235020140907173928754_check.pdf" data-original="/mypage/assets/img/common/noimage2.png" data-amazon-path="/mypage/assets/img/common/noimage2.png" /></div>
+            <div class="hondana_list_contents">
+            <h3>0101-2013022509302235020140907173928754_check.pdf</h3>
+            <div class="hondana_list_contents_inner">
+            <!-- リスト画面での要約はコメントアウトしておく -->
+            <!-- <p class="hondana_list_contents_status status01">要約あり</p> -->
+            <p class="hondana_list_contents_number">11770-228088-100-0-0-0</p>
+            </div>
+            </div></a></li><li class="hondana_list01 ">
+            <input type="hidden" name="order_ids[]" class="order_ids" value="303130312d323031333032323530393330323233353032303134303930373137333834313437315f636865636b2e706466">
+            <a id="start_fancybox" class="fancybox" href="/mypage/showbook.php?h=f6ddee01ce2cb23e98ff1b808c0b7cad&d=4d5445334e7a41744d6a49344d4467344c5445774d4330774c5441744d413d3d&f=0101-2013022509302235020140907173841471_check.pdf&oid=228088&ocode=11770-228088-100-0-0-0&uid=11770&bid=6079353&search_word=&published_on=">
+            <div class="hondana_list_img"><img src="/mypage/assets/img/common/noimage2.png" alt="0101-2013022509302235020140907173841471_check.pdf" title="0101-2013022509302235020140907173841471_check.pdf" data-original="/mypage/assets/img/common/noimage2.png" data-amazon-path="/mypage/assets/img/common/noimage2.png" /></div>
+            <div class="hondana_list_contents">
+            <h3>0101-2013022509302235020140907173841471_check.pdf</h3>
+            <div class="hondana_list_contents_inner">
+            <!-- リスト画面での要約はコメントアウトしておく -->
+            <!-- <p class="hondana_list_contents_status status01">要約あり</p> -->
+            <p class="hondana_list_contents_number">11770-228088-100-0-0-0</p>
+            </div>
+            </div></a></li><li class="hondana_list01 ">
+            <input type="hidden" name="order_ids[]" class="order_ids" value="303130312d323031333032323530393330323233353032303134303930373137333831353736395f636865636b2e706466">
+            <a id="start_fancybox" class="fancybox" href="/mypage/showbook.php?h=f6ddee01ce2cb23e98ff1b808c0b7cad&d=4d5445334e7a41744d6a49344d4467344c5445774d4330774c5441744d413d3d&f=0101-2013022509302235020140907173815769_check.pdf&oid=228088&ocode=11770-228088-100-0-0-0&uid=11770&bid=6079359&search_word=&published_on=">
+            <div class="hondana_list_img"><img src="/mypage/assets/img/common/noimage2.png" alt="0101-2013022509302235020140907173815769_check.pdf" title="0101-2013022509302235020140907173815769_check.pdf" data-original="/mypage/assets/img/common/noimage2.png" data-amazon-path="/mypage/assets/img/common/noimage2.png" /></div>
+            <div class="hondana_list_contents">
+            <h3>0101-2013022509302235020140907173815769_check.pdf</h3>
+            <div class="hondana_list_contents_inner">
+            <!-- リスト画面での要約はコメントアウトしておく -->
+            <!-- <p class="hondana_list_contents_status status01">要約あり</p> -->
+            <p class="hondana_list_contents_number">11770-228088-100-0-0-0</p>
+            </div>
+            </div></a></li><li class="hondana_list01 ">
+            <input type="hidden" name="order_ids[]" class="order_ids" value="303130312d323031333032323530393330323233353032303134303930373137333734383234335f636865636b2e706466">
+            <a id="start_fancybox" class="fancybox" href="/mypage/showbook.php?h=f6ddee01ce2cb23e98ff1b808c0b7cad&d=4d5445334e7a41744d6a49344d4467344c5445774d4330774c5441744d413d3d&f=0101-2013022509302235020140907173748243_check.pdf&oid=228088&ocode=11770-228088-100-0-0-0&uid=11770&bid=6079397&search_word=&published_on=">
+            <div class="hondana_list_img"><img src="/mypage/assets/img/common/noimage2.png" alt="0101-2013022509302235020140907173748243_check.pdf" title="0101-2013022509302235020140907173748243_check.pdf" data-original="/mypage/assets/img/common/noimage2.png" data-amazon-path="/mypage/assets/img/common/noimage2.png" /></div>
+            <div class="hondana_list_contents">
+            <h3>0101-2013022509302235020140907173748243_check.pdf</h3>
+            <div class="hondana_list_contents_inner">
+            <!-- リスト画面での要約はコメントアウトしておく -->
+            <!-- <p class="hondana_list_contents_status status01">要約あり</p> -->
+            <p class="hondana_list_contents_number">11770-228088-100-0-0-0</p>
+            </div>
+            </div></a></li><li class="hondana_list01 ">
+            <input type="hidden" name="order_ids[]" class="order_ids" value="303130312d323031333032323530393330323233353032303134303930373137333733393034375f636865636b2e706466">
+            <a id="start_fancybox" class="fancybox" href="/mypage/showbook.php?h=f6ddee01ce2cb23e98ff1b808c0b7cad&d=4d5445334e7a41744d6a49344d4467344c5445774d4330774c5441744d413d3d&f=0101-2013022509302235020140907173739047_check.pdf&oid=228088&ocode=11770-228088-100-0-0-0&uid=11770&bid=6079398&search_word=&published_on=">
+            <div class="hondana_list_img"><img src="/mypage/assets/img/common/noimage2.png" alt="0101-2013022509302235020140907173739047_check.pdf" title="0101-2013022509302235020140907173739047_check.pdf" data-original="/mypage/assets/img/common/noimage2.png" data-amazon-path="/mypage/assets/img/common/noimage2.png" /></div>
+            <div class="hondana_list_contents">
+            <h3>0101-2013022509302235020140907173739047_check.pdf</h3>
+            <div class="hondana_list_contents_inner">
+            <!-- リスト画面での要約はコメントアウトしておく -->
+            <!-- <p class="hondana_list_contents_status status01">要約あり</p> -->
+            <p class="hondana_list_contents_number">11770-228088-100-0-0-0</p>
+            </div>
+            </div></a></li><li class="hondana_list01 ">
+            <input type="hidden" name="order_ids[]" class="order_ids" value="303130312d323031333032323530393330323233353032303134303930373137333634363437355f636865636b2e706466">
+            <a id="start_fancybox" class="fancybox" href="/mypage/showbook.php?h=f6ddee01ce2cb23e98ff1b808c0b7cad&d=4d5445334e7a41744d6a49344d4467344c5445774d4330774c5441744d413d3d&f=0101-2013022509302235020140907173646475_check.pdf&oid=228088&ocode=11770-228088-100-0-0-0&uid=11770&bid=6079357&search_word=&published_on=">
+            <div class="hondana_list_img"><img src="/mypage/assets/img/common/noimage2.png" alt="0101-2013022509302235020140907173646475_check.pdf" title="0101-2013022509302235020140907173646475_check.pdf" data-original="/mypage/assets/img/common/noimage2.png" data-amazon-path="/mypage/assets/img/common/noimage2.png" /></div>
+            <div class="hondana_list_contents">
+            <h3>0101-2013022509302235020140907173646475_check.pdf</h3>
+            <div class="hondana_list_contents_inner">
+            <!-- リスト画面での要約はコメントアウトしておく -->
+            <!-- <p class="hondana_list_contents_status status01">要約あり</p> -->
+            <p class="hondana_list_contents_number">11770-228088-100-0-0-0</p>
+            </div>
+            </div></a></li><li class="hondana_list01 ">
+            <input type="hidden" name="order_ids[]" class="order_ids" value="303130312d323031333032323530393330323233353032303134303930373137333632393833385f636865636b2e706466">
+            <a id="start_fancybox" class="fancybox" href="/mypage/showbook.php?h=f6ddee01ce2cb23e98ff1b808c0b7cad&d=4d5445334e7a41744d6a49344d4467344c5445774d4330774c5441744d413d3d&f=0101-2013022509302235020140907173629838_check.pdf&oid=228088&ocode=11770-228088-100-0-0-0&uid=11770&bid=6079372&search_word=&published_on=">
+            <div class="hondana_list_img"><img src="/mypage/assets/img/common/noimage2.png" alt="0101-2013022509302235020140907173629838_check.pdf" title="0101-2013022509302235020140907173629838_check.pdf" data-original="/mypage/assets/img/common/noimage2.png" data-amazon-path="/mypage/assets/img/common/noimage2.png" /></div>
+            <div class="hondana_list_contents">
+            <h3>0101-2013022509302235020140907173629838_check.pdf</h3>
+            <div class="hondana_list_contents_inner">
+            <!-- リスト画面での要約はコメントアウトしておく -->
+            <!-- <p class="hondana_list_contents_status status01">要約あり</p> -->
+            <p class="hondana_list_contents_number">11770-228088-100-0-0-0</p>
+            </div>
+            </div></a></li><li class="hondana_list01 ">
+            <input type="hidden" name="order_ids[]" class="order_ids" value="303130312d323031333032323530393330323233353032303134303930373137333631323234385f636865636b2e706466">
+            <a id="start_fancybox" class="fancybox" href="/mypage/showbook.php?h=f6ddee01ce2cb23e98ff1b808c0b7cad&d=4d5445334e7a41744d6a49344d4467344c5445774d4330774c5441744d413d3d&f=0101-2013022509302235020140907173612248_check.pdf&oid=228088&ocode=11770-228088-100-0-0-0&uid=11770&bid=6079422&search_word=&published_on=">
+            <div class="hondana_list_img"><img src="/mypage/assets/img/common/noimage2.png" alt="0101-2013022509302235020140907173612248_check.pdf" title="0101-2013022509302235020140907173612248_check.pdf" data-original="/mypage/assets/img/common/noimage2.png" data-amazon-path="/mypage/assets/img/common/noimage2.png" /></div>
+            <div class="hondana_list_contents">
+            <h3>0101-2013022509302235020140907173612248_check.pdf</h3>
+            <div class="hondana_list_contents_inner">
+            <!-- リスト画面での要約はコメントアウトしておく -->
+            <!-- <p class="hondana_list_contents_status status01">要約あり</p> -->
+            <p class="hondana_list_contents_number">11770-228088-100-0-0-0</p>
+            </div>
+            </div></a></li><li class="hondana_list01 ">
+            <input type="hidden" name="order_ids[]" class="order_ids" value="303130312d323031333032323530393330323233353032303134303930373137333532303438305f636865636b2e706466">
+            <a id="start_fancybox" class="fancybox" href="/mypage/showbook.php?h=f6ddee01ce2cb23e98ff1b808c0b7cad&d=4d5445334e7a41744d6a49344d4467344c5445774d4330774c5441744d413d3d&f=0101-2013022509302235020140907173520480_check.pdf&oid=228088&ocode=11770-228088-100-0-0-0&uid=11770&bid=6079379&search_word=&published_on=">
+            <div class="hondana_list_img"><img src="/mypage/assets/img/common/noimage2.png" alt="0101-2013022509302235020140907173520480_check.pdf" title="0101-2013022509302235020140907173520480_check.pdf" data-original="/mypage/assets/img/common/noimage2.png" data-amazon-path="/mypage/assets/img/common/noimage2.png" /></div>
+            <div class="hondana_list_contents">
+            <h3>0101-2013022509302235020140907173520480_check.pdf</h3>
+            <div class="hondana_list_contents_inner">
+            <!-- リスト画面での要約はコメントアウトしておく -->
+            <!-- <p class="hondana_list_contents_status status01">要約あり</p> -->
+            <p class="hondana_list_contents_number">11770-228088-100-0-0-0</p>
+            </div>
+            </div></a></li><li class="hondana_list01 ">
+            <input type="hidden" name="order_ids[]" class="order_ids" value="303130312d323031333032323530393330323233353032303134303930373137333432303230395f636865636b2e706466">
+            <a id="start_fancybox" class="fancybox" href="/mypage/showbook.php?h=f6ddee01ce2cb23e98ff1b808c0b7cad&d=4d5445334e7a41744d6a49344d4467344c5445774d4330774c5441744d413d3d&f=0101-2013022509302235020140907173420209_check.pdf&oid=228088&ocode=11770-228088-100-0-0-0&uid=11770&bid=6079348&search_word=&published_on=">
+            <div class="hondana_list_img"><img src="/mypage/assets/img/common/noimage2.png" alt="0101-2013022509302235020140907173420209_check.pdf" title="0101-2013022509302235020140907173420209_check.pdf" data-original="/mypage/assets/img/common/noimage2.png" data-amazon-path="/mypage/assets/img/common/noimage2.png" /></div>
+            <div class="hondana_list_contents">
+            <h3>0101-2013022509302235020140907173420209_check.pdf</h3>
+            <div class="hondana_list_contents_inner">
+            <!-- リスト画面での要約はコメントアウトしておく -->
+            <!-- <p class="hondana_list_contents_status status01">要約あり</p> -->
+            <p class="hondana_list_contents_number">11770-228088-100-0-0-0</p>
+            </div>
+            </div></a></li><li class="hondana_list01 ">
+            <input type="hidden" name="order_ids[]" class="order_ids" value="303130312d323031333032323530393330323233353032303134303930373137333431393734395f636865636b2e706466">
+            <a id="start_fancybox" class="fancybox" href="/mypage/showbook.php?h=f6ddee01ce2cb23e98ff1b808c0b7cad&d=4d5445334e7a41744d6a49344d4467344c5445774d4330774c5441744d413d3d&f=0101-2013022509302235020140907173419749_check.pdf&oid=228088&ocode=11770-228088-100-0-0-0&uid=11770&bid=6079362&search_word=&published_on=">
+            <div class="hondana_list_img"><img src="/mypage/assets/img/common/noimage2.png" alt="0101-2013022509302235020140907173419749_check.pdf" title="0101-2013022509302235020140907173419749_check.pdf" data-original="/mypage/assets/img/common/noimage2.png" data-amazon-path="/mypage/assets/img/common/noimage2.png" /></div>
+            <div class="hondana_list_contents">
+            <h3>0101-2013022509302235020140907173419749_check.pdf</h3>
+            <div class="hondana_list_contents_inner">
+            <!-- リスト画面での要約はコメントアウトしておく -->
+            <!-- <p class="hondana_list_contents_status status01">要約あり</p> -->
+            <p class="hondana_list_contents_number">11770-228088-100-0-0-0</p>
+            </div>
+            </div></a></li><li class="hondana_list01 ">
+            <input type="hidden" name="order_ids[]" class="order_ids" value="303130312d323031333032323530393330323233353032303134303930373137333332313634365f636865636b2e706466">
+            <a id="start_fancybox" class="fancybox" href="/mypage/showbook.php?h=f6ddee01ce2cb23e98ff1b808c0b7cad&d=4d5445334e7a41744d6a49344d4467344c5445774d4330774c5441744d413d3d&f=0101-2013022509302235020140907173321646_check.pdf&oid=228088&ocode=11770-228088-100-0-0-0&uid=11770&bid=6079381&search_word=&published_on=">
+            <div class="hondana_list_img"><img src="/mypage/assets/img/common/noimage2.png" alt="0101-2013022509302235020140907173321646_check.pdf" title="0101-2013022509302235020140907173321646_check.pdf" data-original="/mypage/assets/img/common/noimage2.png" data-amazon-path="/mypage/assets/img/common/noimage2.png" /></div>
+            <div class="hondana_list_contents">
+            <h3>0101-2013022509302235020140907173321646_check.pdf</h3>
+            <div class="hondana_list_contents_inner">
+            <!-- リスト画面での要約はコメントアウトしておく -->
+            <!-- <p class="hondana_list_contents_status status01">要約あり</p> -->
+            <p class="hondana_list_contents_number">11770-228088-100-0-0-0</p>
+            </div>
+            </div></a></li><li class="hondana_list01 ">
+            <input type="hidden" name="order_ids[]" class="order_ids" value="303130312d323031333032323530393330323233353032303134303930373137333235303337365f636865636b2e706466">
+            <a id="start_fancybox" class="fancybox" href="/mypage/showbook.php?h=f6ddee01ce2cb23e98ff1b808c0b7cad&d=4d5445334e7a41744d6a49344d4467344c5445774d4330774c5441744d413d3d&f=0101-2013022509302235020140907173250376_check.pdf&oid=228088&ocode=11770-228088-100-0-0-0&uid=11770&bid=6079405&search_word=&published_on=">
+            <div class="hondana_list_img"><img src="/mypage/assets/img/common/noimage2.png" alt="0101-2013022509302235020140907173250376_check.pdf" title="0101-2013022509302235020140907173250376_check.pdf" data-original="/mypage/assets/img/common/noimage2.png" data-amazon-path="/mypage/assets/img/common/noimage2.png" /></div>
+            <div class="hondana_list_contents">
+            <h3>0101-2013022509302235020140907173250376_check.pdf</h3>
+            <div class="hondana_list_contents_inner">
+            <!-- リスト画面での要約はコメントアウトしておく -->
+            <!-- <p class="hondana_list_contents_status status01">要約あり</p> -->
+            <p class="hondana_list_contents_number">11770-228088-100-0-0-0</p>
+            </div>
+            </div></a></li><li class="hondana_list01 ">
+            <input type="hidden" name="order_ids[]" class="order_ids" value="303130312d323031333032323530393330323233353032303134303930373137333233343632385f636865636b2e706466">
+            <a id="start_fancybox" class="fancybox" href="/mypage/showbook.php?h=f6ddee01ce2cb23e98ff1b808c0b7cad&d=4d5445334e7a41744d6a49344d4467344c5445774d4330774c5441744d413d3d&f=0101-2013022509302235020140907173234628_check.pdf&oid=228088&ocode=11770-228088-100-0-0-0&uid=11770&bid=6079339&search_word=&published_on=">
+            <div class="hondana_list_img"><img src="/mypage/assets/img/common/noimage2.png" alt="0101-2013022509302235020140907173234628_check.pdf" title="0101-2013022509302235020140907173234628_check.pdf" data-original="/mypage/assets/img/common/noimage2.png" data-amazon-path="/mypage/assets/img/common/noimage2.png" /></div>
+            <div class="hondana_list_contents">
+            <h3>0101-2013022509302235020140907173234628_check.pdf</h3>
+            <div class="hondana_list_contents_inner">
+            <!-- リスト画面での要約はコメントアウトしておく -->
+            <!-- <p class="hondana_list_contents_status status01">要約あり</p> -->
+            <p class="hondana_list_contents_number">11770-228088-100-0-0-0</p>
+            </div>
+            </div></a></li><li class="hondana_list01 ">
+            <input type="hidden" name="order_ids[]" class="order_ids" value="303130312d323031333032323530393330323233353032303134303930373137333230303033355f636865636b2e706466">
+            <a id="start_fancybox" class="fancybox" href="/mypage/showbook.php?h=f6ddee01ce2cb23e98ff1b808c0b7cad&d=4d5445334e7a41744d6a49344d4467344c5445774d4330774c5441744d413d3d&f=0101-2013022509302235020140907173200035_check.pdf&oid=228088&ocode=11770-228088-100-0-0-0&uid=11770&bid=6079380&search_word=&published_on=">
+            <div class="hondana_list_img"><img src="/mypage/assets/img/common/noimage2.png" alt="0101-2013022509302235020140907173200035_check.pdf" title="0101-2013022509302235020140907173200035_check.pdf" data-original="/mypage/assets/img/common/noimage2.png" data-amazon-path="/mypage/assets/img/common/noimage2.png" /></div>
+            <div class="hondana_list_contents">
+            <h3>0101-2013022509302235020140907173200035_check.pdf</h3>
+            <div class="hondana_list_contents_inner">
+            <!-- リスト画面での要約はコメントアウトしておく -->
+            <!-- <p class="hondana_list_contents_status status01">要約あり</p> -->
+            <p class="hondana_list_contents_number">11770-228088-100-0-0-0</p>
+            </div>
+            </div></a></li><li class="hondana_list01 ">
+            <input type="hidden" name="order_ids[]" class="order_ids" value="303130312d323031333032323530393330323233353032303134303930373137333135393036305f636865636b2e706466">
+            <a id="start_fancybox" class="fancybox" href="/mypage/showbook.php?h=f6ddee01ce2cb23e98ff1b808c0b7cad&d=4d5445334e7a41744d6a49344d4467344c5445774d4330774c5441744d413d3d&f=0101-2013022509302235020140907173159060_check.pdf&oid=228088&ocode=11770-228088-100-0-0-0&uid=11770&bid=6079358&search_word=&published_on=">
+            <div class="hondana_list_img"><img src="/mypage/assets/img/common/noimage2.png" alt="0101-2013022509302235020140907173159060_check.pdf" title="0101-2013022509302235020140907173159060_check.pdf" data-original="/mypage/assets/img/common/noimage2.png" data-amazon-path="/mypage/assets/img/common/noimage2.png" /></div>
+            <div class="hondana_list_contents">
+            <h3>0101-2013022509302235020140907173159060_check.pdf</h3>
+            <div class="hondana_list_contents_inner">
+            <!-- リスト画面での要約はコメントアウトしておく -->
+            <!-- <p class="hondana_list_contents_status status01">要約あり</p> -->
+            <p class="hondana_list_contents_number">11770-228088-100-0-0-0</p>
+            </div>
+            </div></a></li><li class="hondana_list01 ">
+            <input type="hidden" name="order_ids[]" class="order_ids" value="303130312d323031333032323530393330323233353032303134303930373137333130343635355f636865636b2e706466">
+            <a id="start_fancybox" class="fancybox" href="/mypage/showbook.php?h=f6ddee01ce2cb23e98ff1b808c0b7cad&d=4d5445334e7a41744d6a49344d4467344c5445774d4330774c5441744d413d3d&f=0101-2013022509302235020140907173104655_check.pdf&oid=228088&ocode=11770-228088-100-0-0-0&uid=11770&bid=6079424&search_word=&published_on=">
+            <div class="hondana_list_img"><img src="/mypage/assets/img/common/noimage2.png" alt="0101-2013022509302235020140907173104655_check.pdf" title="0101-2013022509302235020140907173104655_check.pdf" data-original="/mypage/assets/img/common/noimage2.png" data-amazon-path="/mypage/assets/img/common/noimage2.png" /></div>
+            <div class="hondana_list_contents">
+            <h3>0101-2013022509302235020140907173104655_check.pdf</h3>
+            <div class="hondana_list_contents_inner">
+            <!-- リスト画面での要約はコメントアウトしておく -->
+            <!-- <p class="hondana_list_contents_status status01">要約あり</p> -->
+            <p class="hondana_list_contents_number">11770-228088-100-0-0-0</p>
+            </div>
+            </div></a></li><li class="hondana_list01 ">
+            <input type="hidden" name="order_ids[]" class="order_ids" value="303130312d323031333032323530393330323233353032303134303930373137333031343532345f636865636b2e706466">
+            <a id="start_fancybox" class="fancybox" href="/mypage/showbook.php?h=f6ddee01ce2cb23e98ff1b808c0b7cad&d=4d5445334e7a41744d6a49344d4467344c5445774d4330774c5441744d413d3d&f=0101-2013022509302235020140907173014524_check.pdf&oid=228088&ocode=11770-228088-100-0-0-0&uid=11770&bid=6079395&search_word=&published_on=">
+            <div class="hondana_list_img"><img src="/mypage/assets/img/common/noimage2.png" alt="0101-2013022509302235020140907173014524_check.pdf" title="0101-2013022509302235020140907173014524_check.pdf" data-original="/mypage/assets/img/common/noimage2.png" data-amazon-path="/mypage/assets/img/common/noimage2.png" /></div>
+            <div class="hondana_list_contents">
+            <h3>0101-2013022509302235020140907173014524_check.pdf</h3>
+            <div class="hondana_list_contents_inner">
+            <!-- リスト画面での要約はコメントアウトしておく -->
+            <!-- <p class="hondana_list_contents_status status01">要約あり</p> -->
+            <p class="hondana_list_contents_number">11770-228088-100-0-0-0</p>
+            </div>
+            </div></a></li><li class="hondana_list01 ">
+            <input type="hidden" name="order_ids[]" class="order_ids" value="303130312d323031333032323530393330323233353032303134303930373137333031323634345f636865636b2e706466">
+            <a id="start_fancybox" class="fancybox" href="/mypage/showbook.php?h=f6ddee01ce2cb23e98ff1b808c0b7cad&d=4d5445334e7a41744d6a49344d4467344c5445774d4330774c5441744d413d3d&f=0101-2013022509302235020140907173012644_check.pdf&oid=228088&ocode=11770-228088-100-0-0-0&uid=11770&bid=6079355&search_word=&published_on=">
+            <div class="hondana_list_img"><img src="/mypage/assets/img/common/noimage2.png" alt="0101-2013022509302235020140907173012644_check.pdf" title="0101-2013022509302235020140907173012644_check.pdf" data-original="/mypage/assets/img/common/noimage2.png" data-amazon-path="/mypage/assets/img/common/noimage2.png" /></div>
+            <div class="hondana_list_contents">
+            <h3>0101-2013022509302235020140907173012644_check.pdf</h3>
+            <div class="hondana_list_contents_inner">
+            <!-- リスト画面での要約はコメントアウトしておく -->
+            <!-- <p class="hondana_list_contents_status status01">要約あり</p> -->
+            <p class="hondana_list_contents_number">11770-228088-100-0-0-0</p>
+            </div>
+            </div></a></li><li class="hondana_list01 ">
+            <input type="hidden" name="order_ids[]" class="order_ids" value="303130312d323031333032323530393330323233353032303134303930373137323931353930375f636865636b2e706466">
+            <a id="start_fancybox" class="fancybox" href="/mypage/showbook.php?h=f6ddee01ce2cb23e98ff1b808c0b7cad&d=4d5445334e7a41744d6a49344d4467344c5445774d4330774c5441744d413d3d&f=0101-2013022509302235020140907172915907_check.pdf&oid=228088&ocode=11770-228088-100-0-0-0&uid=11770&bid=6079429&search_word=&published_on=">
+            <div class="hondana_list_img"><img src="/mypage/assets/img/common/noimage2.png" alt="0101-2013022509302235020140907172915907_check.pdf" title="0101-2013022509302235020140907172915907_check.pdf" data-original="/mypage/assets/img/common/noimage2.png" data-amazon-path="/mypage/assets/img/common/noimage2.png" /></div>
+            <div class="hondana_list_contents">
+            <h3>0101-2013022509302235020140907172915907_check.pdf</h3>
+            <div class="hondana_list_contents_inner">
+            <!-- リスト画面での要約はコメントアウトしておく -->
+            <!-- <p class="hondana_list_contents_status status01">要約あり</p> -->
+            <p class="hondana_list_contents_number">11770-228088-100-0-0-0</p>
+            </div>
+            </div></a></li><li class="hondana_list01 ">
+            <input type="hidden" name="order_ids[]" class="order_ids" value="303130312d323031333032323530393330323233353032303134303930373137323835363135305f636865636b2e706466">
+            <a id="start_fancybox" class="fancybox" href="/mypage/showbook.php?h=f6ddee01ce2cb23e98ff1b808c0b7cad&d=4d5445334e7a41744d6a49344d4467344c5445774d4330774c5441744d413d3d&f=0101-2013022509302235020140907172856150_check.pdf&oid=228088&ocode=11770-228088-100-0-0-0&uid=11770&bid=6079365&search_word=&published_on=">
+            <div class="hondana_list_img"><img src="/mypage/assets/img/common/noimage2.png" alt="0101-2013022509302235020140907172856150_check.pdf" title="0101-2013022509302235020140907172856150_check.pdf" data-original="/mypage/assets/img/common/noimage2.png" data-amazon-path="/mypage/assets/img/common/noimage2.png" /></div>
+            <div class="hondana_list_contents">
+            <h3>0101-2013022509302235020140907172856150_check.pdf</h3>
+            <div class="hondana_list_contents_inner">
+            <!-- リスト画面での要約はコメントアウトしておく -->
+            <!-- <p class="hondana_list_contents_status status01">要約あり</p> -->
+            <p class="hondana_list_contents_number">11770-228088-100-0-0-0</p>
+            </div>
+            </div></a></li><li class="hondana_list01 ">
+            <input type="hidden" name="order_ids[]" class="order_ids" value="303130312d323031333032323530393330323233353032303134303930373137323832343331385f636865636b2e706466">
+            <a id="start_fancybox" class="fancybox" href="/mypage/showbook.php?h=f6ddee01ce2cb23e98ff1b808c0b7cad&d=4d5445334e7a41744d6a49344d4467344c5445774d4330774c5441744d413d3d&f=0101-2013022509302235020140907172824318_check.pdf&oid=228088&ocode=11770-228088-100-0-0-0&uid=11770&bid=6079391&search_word=&published_on=">
+            <div class="hondana_list_img"><img src="/mypage/assets/img/common/noimage2.png" alt="0101-2013022509302235020140907172824318_check.pdf" title="0101-2013022509302235020140907172824318_check.pdf" data-original="/mypage/assets/img/common/noimage2.png" data-amazon-path="/mypage/assets/img/common/noimage2.png" /></div>
+            <div class="hondana_list_contents">
+            <h3>0101-2013022509302235020140907172824318_check.pdf</h3>
+            <div class="hondana_list_contents_inner">
+            <!-- リスト画面での要約はコメントアウトしておく -->
+            <!-- <p class="hondana_list_contents_status status01">要約あり</p> -->
+            <p class="hondana_list_contents_number">11770-228088-100-0-0-0</p>
+            </div>
+            </div></a></li><li class="hondana_list01 ">
+            <input type="hidden" name="order_ids[]" class="order_ids" value="303130312d323031333032323530393330323233353032303134303930373137323830383437365f636865636b2e706466">
+            <a id="start_fancybox" class="fancybox" href="/mypage/showbook.php?h=f6ddee01ce2cb23e98ff1b808c0b7cad&d=4d5445334e7a41744d6a49344d4467344c5445774d4330774c5441744d413d3d&f=0101-2013022509302235020140907172808476_check.pdf&oid=228088&ocode=11770-228088-100-0-0-0&uid=11770&bid=6079400&search_word=&published_on=">
+            <div class="hondana_list_img"><img src="/mypage/assets/img/common/noimage2.png" alt="0101-2013022509302235020140907172808476_check.pdf" title="0101-2013022509302235020140907172808476_check.pdf" data-original="/mypage/assets/img/common/noimage2.png" data-amazon-path="/mypage/assets/img/common/noimage2.png" /></div>
+            <div class="hondana_list_contents">
+            <h3>0101-2013022509302235020140907172808476_check.pdf</h3>
+            <div class="hondana_list_contents_inner">
+            <!-- リスト画面での要約はコメントアウトしておく -->
+            <!-- <p class="hondana_list_contents_status status01">要約あり</p> -->
+            <p class="hondana_list_contents_number">11770-228088-100-0-0-0</p>
+            </div>
+            </div></a></li>    </ul>
+    <!-- // 本棚 リスト -->
+    <!-- ページ下部ページャ -->
+    <div id="hondana_list_foot">
+        <ul class="hondana_list_pagenavi01">
+        <li><li><a href="?&page=1">1</a></li><li><a href="#" class="select">2</a></li><li><a href="?&page=3">3</a></li><li><a href="?&page=4">4</a></li><li><a href="?&page=5">5</a></li><li><a href="?&page=6">6</a></li><li><a href="?&page=38" class="next" class="next">最後</a></li></li>        </ul>
+    </div>
+    <!-- ページ下部ページャ -->
+</section>
+<!-- // id=hondana_list -->
+    </article>
+    <!-- /contents -->
+</div>
+
+        <!-- left_contents -->
+<section id="left_contents">
+ 
+    <ul id="mypage_navi01">
+        <li><a href="/mypage/mypage.php" class="navi01_01">マイ本棚</a></li>
+<li><a href="/mypage/newscan.php" class="navi01_02">スキャン依頼<br>お支払い</a><ul class="navi01_02_submenu"><li><a href="/mypage/newscan.php" class="navi01_02_submenu01">通常の依頼</a></li><li><a href="/mypage/premium_paypal_off.php?tab=3" class="navi01_02_submenu02">プレミアム会員依頼</a></li></ul></li>
+<li><a href="/mypage/premium_paypal_off.php" class="navi01_03">プレミアム会員</a></li>
+    </ul>
+
+        <div id="mypage_premium_values"><a href="/mypage/premium_values.php"><img src="/mypage/assets/img/premium_values/banner_premium_values.png" width="170" height="260" alt="限定プレミアム会員だけの数々のサービスご存知ですか!?" /></a></div>
+    
+    <ul id="mypage_navi02">
+        <li><a href="/mypage/history.php" class="navi02_01">依頼一覧</a></li>
+
+        <!-- [チューニング] -->
+                    <li id="mypage_navi02_trigger"><a href="/mypage/tunedevices.php" class="navi02_02">チューニング</a>
+                <ul id="mypage_navi02_submenu">
+                    <li><a href="/mypage/tunelab.php" class="tunelab_icon01">ご依頼方法</a></li>
+                    <li><a href="/mypage/tunedevices.php" class="tunelab_icon02">端末管理</a></li>
+                    <li><a href="/mypage/tunelabnowlist.php" class="tunelab_icon03">作業中一覧</a></li>
+                    <li><a href="/mypage/tunelablist.php" class="tunelab_icon04">完了一覧</a></li>
+                    <li><a href="/mypage/tunelab_premium.php" class="tunelab_icon05">もっと便利に</a></li>
+                </ul>
+            </li>
+        
+        <li><a href="/mypage/book_statistics.php" class="navi02_05">統計(分析)</a></li>
+<li><a href="/mypage/message_list.php" class="navi02_04">サポート</a></li>
+    </ul>
+
+        
+    <ul id="mypage_navi03">
+        <li><a href="/mypage/infomation.php">お知らせ</a></li>
+<li><a href="/mypage/mochikomi.php">持ち込み予約</a></li>
+        <li><a href="/mypage/user_modify.php">設定・登録情報変更</a></li>
+        <li><a href="?logout=1">ログアウト</a></li>
+    </ul>
+
+    <!--特別なデザインで出していたが非表示にする。BS_USER_MYPAGE_C7-77 ユーザーテストの結果からの内容変更
+    <ul id="mypage_navi04">
+        <li><a href="/mypage/user_modify.php" class="navi04_01">設定・登録情報変更</a></li>
+        <li><a href="?logout=1" class="navi04_02">ログアウト</a></li>
+    </ul>
+    -->
+    
+    <ul id="mypage_banar">
+        <li><a href="http://www.amazon.co.jp/?_encoding=UTF8&tag=linkurl-22&linkCode=ur2&camp=247&creative=7399" target="_blank"><img src="/mypage/assets/img/common/leftmenu_amazon_banar.png" alt="Amazon" width="170" height="59" /></a></li>
+    </ul>
+
+</section>
+
+
+        <!-- /left_contents -->
+
+        <!--right_contents-->
+<section id="right_contents">
+    <!-- 旧デザインへのスイッチ箇所-->
+            <div id="myBookShelfRemarksArea">
+        <div class="btn_wrap"><a href="/mypage/premium_paypal_off.php" class="btn_newhondana"><span>新しい本棚を作成</span><span>(プレミアム会員限定)</span></a></div>
+        <p id="myBookShelfRemarks">
+            新しく本棚を作成する機能が追加されました。好きな本を追加したり並べ替えたりする事によって、タグ付け機能のようにお好みの本棚を作成できます。<br>※プレミアム会員限定機能
+        </p>
+    </div>
+<script>
+        $(function () {
+        $('.showAllMyBookShelfList').click(function () {
+            var $this = $(this);
+            if ($this.hasClass('select') === true) {
+                $this.removeClass('select');
+                $('#myBookShelfList li.none').slideUp(200);
+            } else {
+                $this.addClass('select');
+                $('#myBookShelfList li.none').slideDown(200);
+            }
+        });
+    });
+</script>
+    
+    <!--news-->
+    <div class="right_contents_box01">
+
+
+        <h2>お知らせ</h2>
+        <div class="right_contents_news">
+
+            <!--大事なお知らせ-->
+            
+            
+            
+                            <dl>
+                                        <dt><a href="/mypage/infomation.php#infomation-98">送付先住所が 「横溝ビル 1F」 から 「駒沢神興ビル 1F」へ変更となります</a></dt>
+                    <dd>2025年9月1日</dd>
+                </dl>
+                                <dl>
+                                        <dt><a href="/mypage/infomation.php#infomation-97">Slack連携機能のメンテナンス</a></dt>
+                    <dd>2024年8月19日</dd>
+                </dl>
+                                <dl>
+                                        <dt><a href="/mypage/infomation.php#infomation-96">サービス価格改定のお知らせ</a></dt>
+                    <dd>2023年3月10日</dd>
+                </dl>
+                                <dl>
+                                        <dt><a href="/mypage/infomation.php#infomation-94">「Kindle変換チューニング」廃止のお知らせ</a></dt>
+                    <dd>2023年1月6日<span class="premium">プレミアム会員限定</span></dd>
+                </dl>
+                        </div>
+    </div>
+    <!--/news-->
+
+    <!--banar-->
+    <ul class="right_banar">
+        <li><a href="https://www.bookscan.co.jp/history" target="_blank"><img
+                        src="/mypage/assets/img/common/rightcontents_banar_history.png" alt="BOOKSCANのはじまりから現在まで"
+                        width="180" height="75"/></a></li>
+                <li><a target="_blank"
+               href="https://bookscan.uservoice.com/clients/widgets/classic_widget?mode=feedback&link_color=007dbf&forum_id=207191&trigger_background_color=7CA600&embed_type=lightbox&contact_enabled=false&feedback_enabled=true&smartvote=true"><img
+                        src="/mypage/assets/img/common/rightcontents_banar_demand.png" alt="新機能のご要望" width="180"
+                        height="75"/></a></li>
+    </ul>
+    <!--banar-->
+
+</section>
+
+
+        <!-- /right_contents -->
+
+    </div>
+    <!-- /contents_wrap -->
+
+    <!--footer-->
+
+	
+<footer>
+
+<div class="footer_navi">
+<h1>コンテンツ</h1>
+<ul>
+<li><a href="https://www.bookscan.co.jp/index">ホーム</a></li>
+<li><a href="https://www.bookscan.co.jp/signup">会員登録</a></li>
+<li><a href="https://www.bookscan.co.jp/earthquake">本棚の地震対策について</a></li>
+<li><a href="https://www.bookscan.co.jp/service">サービス案内</a></li>
+<li><a href="https://www.bookscan.co.jp/company">会社概要</a></li>
+<li><a href="https://www.bookscan.co.jp/tradelaw">特定商取引法に基づく表記</a></li>
+<li><a href="https://www.bookscan.co.jp/price">料金案内</a></li>
+<li><a href="https://www.bookscan.co.jp/system">社内システム紹介</a></li>
+<li><a href="https://www.bookscan.co.jp/privacypolicy">個人情報保護ポリシー</a></li>
+<li><a href="https://www.bookscan.co.jp/eye">視覚障害者の方へ</a></li>
+<li><a href="https://www.bookscan.co.jp/history">はじまりから現在まで</a></li>
+<li><a href="https://author.bookscan.co.jp/">著者・出版者の方</a></li>
+<li><a href="https://www.bookscan.co.jp/copyright">著作権について</a></li>
+<li><a href="https://www.bookscan.co.jp/recruit">採用情報</a></li>
+<li><a href="http://pro.bookscan.co.jp/">出版社向け電子書籍化</a></li>
+</ul>
+</div>
+
+
+<div class="app">
+    <h2>BOOKSCAN Reader</h2>
+    <p>無料ダウンロード</p>
+    <ul>
+        <li><a href="https://apps.apple.com/jp/app/bookscan-for-iphone/id441420566?mt=8" target="_blank"><img src="/mypage/assets/img/common/app_ios.svg" width="108.85157" height="40" alt="App Storeからダウンロード" /></a><li>
+        <li><a href="https://play.google.com/store/apps/details?id=jp.co.bookscan.activity&hl=ja" target="_blank"><img src="/mypage/assets/img/common/app_android.png" width="135" height="40" alt="Google Playからダウンロード" /></a></li>
+    </ul>
+</div>
+
+<div class="copyright">
+<h3>Copyright &#169; 2010–2025　合同会社大和印刷　　<br>BOOKSCANは、合同会社大和印刷の登録商標です。</h3>
+<h4>Powered by BOOKSCAN</h4>
+</div>
+
+</footer>
+    <!--/footer-->
+
+</div>
+<!--/wrapper-->
+
+
+
+<span class="pagetop">ページトップに戻る</span>
+
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery.lazyload/1.9.0/jquery.lazyload.min.js"></script>
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
+<script type="text/javascript" src="/mypage/assets/js/ajax.js"></script>
+<!-- フラッシュメッセージ表示用 -->
+<script type="text/javascript" src="/mypage/assets/js/flash_msg.js"></script>
+<style>
+.slected_wrapper
+{
+	height:30px;
+	padding: 0;
+	border: none;
+}
+
+.selected
+{
+	padding: 0;
+	border: none;
+}
+
+.handle
+{
+	padding: 5px;
+	border: solid 1px #999;
+	cursor: pointer;
+	margin-right: 5px;
+}
+</style>
+
+<script src="/mypage/assets/js/bookshelf_fancybox.js"></script>
+<script>
+// 表紙のない画像はamazonの画像を取るようにjsで再構成する
+$(function() {
+    $("div.hondana_list_img > img").each(function(idx, elm) {
+        var original_src = $(elm).attr('data-original');
+        var amazon_src = $(elm).attr('data-amazon-path');
+
+        var original_img = new Image();
+        var amazon_img = new Image();
+
+        original_img.onload = function() {
+            // console.log(this.width);
+            if (this.width == 1 && this.height == 1) {
+                // original の画像がなければ amazonの画像を取ってくる
+                amazon_img.src = amazon_src;
+            } else {
+                elm.src = original_src;
+            }
+        }
+        // 画像は .src にセットして初めて読み込まれるので、ここは必須。
+        original_img.src = original_src;
+
+        // src_img.onlod から呼び出される
+        amazon_img.onload = function() {
+            if (this.width == 1 && this.height == 1) {
+                // amazonにも画像が無い
+                elm.src = '/mypage/assets/img/common/noimage2.png';
+            } else {
+                elm.src = amazon_src;
+            }
+        }
+
+    });
+});
+</script>
+
+</body>
+</html>

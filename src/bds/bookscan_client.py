@@ -9,7 +9,7 @@ from bs4 import BeautifulSoup
 from tenacity import Retrying, stop_after_attempt, wait_random_exponential, retry_if_exception_type
 
 from .config import Settings
-from .util import RateLimiter
+from .util import RateLimiter, totp
 
 ItemMeta = Dict[str, Any]
 
@@ -82,9 +82,13 @@ class BookscanClient:
             }
             # 将来のTOTP手動入力/外部供給を想定（自動生成はM4）
             totp_field = getattr(self.settings, "BOOKSCAN_LOGIN_TOTP_FIELD", "otp")
-            totp_value = None  # 未実装（M4でpyotp対応予定）
-            if totp_field and totp_value:
-                payload[totp_field] = totp_value
+            secret = getattr(self.settings, "BOOKSCAN_TOTP_SECRET", None)
+            if totp_field and secret:
+                try:
+                    payload[totp_field] = totp(secret)
+                except Exception:
+                    # TOTP生成失敗時は無視（後続で失敗した場合も例外は伝播しない）
+                    pass
 
             self._rl.throttle()
             self._call_with_retry(self.session.post, login_url, data=payload, timeout=self.timeout).raise_for_status()
@@ -143,7 +147,8 @@ class BookscanClient:
 
                 items: List[ItemMeta] = []
                 for html in html_docs:
-                    items.extend(self.parse_downloadables(html))
+                    parsed = self._parse_any_html(html)
+                    items.extend(parsed)
                 return items
             except Exception:
                 # デバッグ指定時は失敗しても空配列で継続
@@ -205,6 +210,15 @@ class BookscanClient:
         if url.startswith("http://") or url.startswith("https://"):
             self._rl.throttle()
             resp = self._call_with_retry(self.session.get, url, timeout=self.timeout)
+            resp.raise_for_status()
+            dp.write_bytes(resp.content)
+            return
+
+        # ルート相対（/download.php...）は base_url に連結してHTTP扱い
+        if url.startswith("/"):
+            full = f"{self.base_url}{url}"
+            self._rl.throttle()
+            resp = self._call_with_retry(self.session.get, full, timeout=self.timeout)
             resp.raise_for_status()
             dp.write_bytes(resp.content)
             return
@@ -280,3 +294,135 @@ class BookscanClient:
             items.append(item)
 
         return items
+
+    # ---- additional parsers for real Bookscan pages (debug input) ----
+    @staticmethod
+    def _parse_showbook_page(html: str) -> List[ItemMeta]:
+        """
+        showbook.php ページを直接パースして1件の ItemMeta を返す（存在すれば）。
+        - window.routing の path クエリから bid と f（ファイル名）を抽出
+        - ダウンロードリンクの href（/download.php?...）を pdf_url として拾う
+        - タイトルは f から .pdf を除去したもの、なければ h2.mybook_modal_title
+        """
+        from urllib.parse import urlparse, parse_qs, unquote
+        import re
+
+        soup = BeautifulSoup(html, "html.parser")
+        bid: Optional[str] = None
+        title: Optional[str] = None
+        pdf_url: Optional[str] = None
+
+        for sc in soup.find_all("script"):
+            s = sc.string or sc.get_text()
+            if not s or "window.routing" not in s:
+                continue
+            m = re.search(r"\"path\"\s*:\s*\"([^\"]+)\"", s)
+            if not m:
+                continue
+            path = m.group(1)
+            q = parse_qs(urlparse(path).query)
+            if not bid and q.get("bid"):
+                bid = q["bid"][0]
+            if not title and q.get("f"):
+                try:
+                    title = unquote(q["f"][0])
+                except Exception:
+                    title = q["f"][0]
+
+        a = soup.select_one("ul.detail_navi a[href*='download.php']")
+        if a:
+            href = a.get("href") or ""
+            if href:
+                pdf_url = href
+                # タイトルの補完（f= から）
+                try:
+                    from urllib.parse import urlparse, parse_qs, unquote
+
+                    q = parse_qs(urlparse(href).query)
+                    if not title and q.get("f"):
+                        title = unquote(q["f"][0])
+                except Exception:
+                    pass
+
+        if not title:
+            h = soup.select_one("h2.mybook_modal_title")
+            if h and h.get_text(strip=True):
+                title = h.get_text(strip=True)
+
+        # 最低限 bid と title が必要
+        if not bid or not title:
+            return []
+        if title.lower().endswith(".pdf"):
+            title = title[:-4]
+
+        item: ItemMeta = {
+            "id": bid,
+            "title": title,
+            "ext": "pdf",
+            "updated_at": "",
+            "size": 0,
+        }
+        if pdf_url:
+            item["pdf_url"] = pdf_url
+        return [item]
+
+    @staticmethod
+    def _parse_bookshelf_list_page(html: str) -> List[ItemMeta]:
+        """
+        bookshelf_all_list.php のリストページから showbook へのリンクを抽出して ItemMeta 配列を作成。
+        - a[href*='showbook.php'] のクエリから bid と f を抽出
+        - f が無い場合は近傍の h3 テキストをタイトルとして採用
+        """
+        from urllib.parse import urlparse, parse_qs, unquote
+        import re
+
+        soup = BeautifulSoup(html, "html.parser")
+        items: List[ItemMeta] = []
+        for a in soup.select("a[href*='showbook.php']"):
+            href = a.get("href") or ""
+            if not href:
+                continue
+            q = parse_qs(urlparse(href).query)
+            bid = None
+            if q.get("bid"):
+                bid = q["bid"][0]
+            if not bid:
+                m = re.search(r"[?&]bid=(\d+)", href)
+                if m:
+                    bid = m.group(1)
+            if not bid:
+                continue
+            title: Optional[str] = None
+            if q.get("f"):
+                try:
+                    title = unquote(q["f"][0])
+                except Exception:
+                    title = q["f"][0]
+            if not title:
+                h3 = a.find_next("h3")
+                if h3 and h3.get_text(strip=True):
+                    title = h3.get_text(strip=True)
+            if not title:
+                title = bid
+            if title.lower().endswith(".pdf"):
+                title = title[:-4]
+            items.append({
+                "id": bid,
+                "title": title,
+                "ext": "pdf",
+                "updated_at": "",
+                "size": 0,
+            })
+        return items
+
+    def _parse_any_html(self, html: str) -> List[ItemMeta]:
+        """
+        複数のパーサを順に試す（.download-item → showbook → bookshelf）。
+        """
+        items = self.parse_downloadables(html)
+        if items:
+            return items
+        items = self._parse_showbook_page(html)
+        if items:
+            return items
+        return self._parse_bookshelf_list_page(html)

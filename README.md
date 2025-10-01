@@ -154,7 +154,7 @@ RETRY_BACKOFF_MAX=2.0
 
 ### Dropbox OAuth権限取得（OAuth 2.0 with PKCE + Refresh Token）
 
-developers.dropbox.com/oauth-guide に準拠した「Authorization Code + PKCE」での権限取得手順です。ネイティブCLI想定（クライアントシークレットを保持しない運用）で、長期の refresh_token を取得し、以後は短期 access_token を自動更新します（実装はM4予定／ここでは手動取得手順を記載）。
+developers.dropbox.com/oauth-guide に準拠した「Authorization Code + PKCE」での権限取得手順です。ネイティブCLI想定（クライアントシークレットを保持しない運用）で、長期の refresh_token を取得し、以後は短期 access_token を自動更新します。簡易なCLI補助も用意しました（`bds login dropbox`）。
 
 前提
 - Dropbox App（Scoped Access）を作成済み
@@ -348,7 +348,13 @@ PYTHONPATH=src python -m bds.cli sync --dry-run
 
 ## デバッグ/ドライラン（BOOKSCAN_DEBUG_HTML_PATH）
 
-HTTPログイン未実装のM1段階でも、デバッグ用HTMLから同期計画と転送フローを検証できます。
+HTTPログイン未実装のM1段階でも、デバッグ用HTMLから同期計画と転送フローを検証できます。以下の入力を自動判別してパースします（上から順に優先）。
+
+- `.download-item` 形式の最小HTML（本リポジトリのサンプル形式）
+- showbookページ（`showbook.php?...&bid=...&f=...pdf`）
+- 本棚一覧ページ（`bookshelf_all_list.php`：`showbook.php`へのリンクから抽出）
+
+ディレクトリやワイルドカードを指定すると、複数ファイルを結合してパースします。
 
 - 変数: `BOOKSCAN_DEBUG_HTML_PATH`
   - `samples/bookscan_list_sample.html` を同梱済み（2件の擬似アイテム）
@@ -399,6 +405,16 @@ python -m bds.cli sync --dry-run
 - 出力先ルートは `DROPBOX_DEST_ROOT`（既定: `/Apps/bookscan-sync`）
 - ダウンロード先の一時ディレクトリは `DOWNLOAD_DIR`（既定: `.cache/downloads`）
 - 同期状態は `.state/state.json` に保存されます（gitignore対象）
+- showbookページ内のダウンロードリンクが `/download.php?...` のようなルート相対URLでも、`BOOKSCAN_BASE_URL` を付与して取得します（例: 既定 `https://www.bookscan.co.jp`）。
+- 実アップロード時は認証が必要です。`BOOKSCAN_EMAIL/PASSWORD/TOTP_SECRET` と `BOOKSCAN_LOGIN_URL` を設定してください。
+
+例（showbookと一覧HTMLを混在させてパース）:
+```bash
+BOOKSCAN_DEBUG_HTML_PATH=samples/ \
+PYTHONPATH=src python -m bds.cli list
+BOOKSCAN_DEBUG_HTML_PATH="samples/*.html" \
+PYTHONPATH=src python -m bds.cli sync --dry-run
+```
 
 ## HTTPベース一覧取得（任意設定, M1最小）
 
@@ -416,7 +432,7 @@ python -m bds.cli sync --dry-run
   - BOOKSCAN_LOGIN_URL: ログインPOST先URL
   - BOOKSCAN_LOGIN_EMAIL_FIELD: メールアドレスのフィールド名（既定: email）
   - BOOKSCAN_LOGIN_PASSWORD_FIELD: パスワードのフィールド名（既定: password）
-  - BOOKSCAN_LOGIN_TOTP_FIELD: TOTP のフィールド名（既定: otp、値の自動生成は将来対応）
+  - BOOKSCAN_LOGIN_TOTP_FIELD: TOTP のフィールド名（既定: otp、値の自動生成に対応）
 
 ## list サブコマンド（M2の一部を前倒し）
 
@@ -475,9 +491,9 @@ STATE_PATH=.state/another.json python -m bds.cli list --source state
     ```
 
 - 認証補助
-  - `python -m bds.cli login dropbox`
-  - `python -m bds.cli login bookscan`
-  - ブラウザを用いたOAuthフローを内蔵（将来）／現状は環境変数で代替
+  - `python -m bds.cli login dropbox`（PKCEの認可URL生成・コード交換の補助）
+  - `python -m bds.cli login bookscan`（現状は環境変数での設定案内のみ）
+  - `python -m bds.cli logout dropbox`（現アクセストークンの失効）
 
 
 ### 主なオプション
@@ -531,7 +547,7 @@ STATE_PATH=.state/another.json python -m bds.cli list --source state
 ## トラブルシュート
 
 - Bookscanで2FA/TOTPが有効
-  - `BOOKSCAN_TOTP_SECRET` の設定、または初回のみ手動入力UI（将来）
+  - `BOOKSCAN_TOTP_SECRET` を設定すると TOTP を自動生成して送信します
 - CAPTCHAに阻害される
   - レートをさらに下げる、Playwrightフォールバックを使用、間隔を空ける
 - HTTP 429/5xx
