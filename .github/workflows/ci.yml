@@ -50,7 +50,7 @@ jobs:
           pytest
 
       - name: Security audit (pip-audit)
+        continue-on-error: true
         run: |
           pip install pip-audit
           pip-audit -l --ignore-vuln GHSA-4xh5-x5gv-qwph
-        continue-on-error: true
