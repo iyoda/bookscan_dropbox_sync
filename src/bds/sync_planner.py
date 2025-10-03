@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional, TypedDict
+from typing import Any, TypedDict
 
 from .config import Settings
 from .util import safe_filename
@@ -8,7 +8,7 @@ from .util import safe_filename
 
 class BookItem(TypedDict, total=False):
     id: str
-    title: Optional[str]
+    title: str | None
     ext: str
     updated_at: str
     size: int
@@ -40,7 +40,7 @@ class SyncPlanner:
     - 命名規則: safe_filename(title) + .ext（M1はルート直下に配置）
     """
 
-    def __init__(self, settings: Settings, state: Dict[str, Any]) -> None:
+    def __init__(self, settings: Settings, state: dict[str, Any]) -> None:
         self.settings = settings
         self.state = state
 
@@ -55,7 +55,7 @@ class SyncPlanner:
         return f"{normalized}{ext}"
 
     def _needs_upload(self, book_id: str, item: BookItem) -> bool:
-        current: Optional[StateItem] = self.state.get("items", {}).get(book_id)  # type: ignore[assignment]
+        current: StateItem | None = self.state.get("items", {}).get(book_id)  # type: ignore[assignment]
         if not current:
             return True
         # 簡易判定（M1）: updated_at または size が変わっていれば更新とみなす
@@ -65,12 +65,10 @@ class SyncPlanner:
         cur_size = current.get("size") if current else None
         if updated_at and cur_updated and updated_at != cur_updated:
             return True
-        if size is not None and cur_size is not None and size != cur_size:
-            return True
-        return False
+        return bool(size is not None and cur_size is not None and size != cur_size)
 
-    def plan(self, items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        plan: List[PlanEntry] = []
+    def plan(self, items: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        plan: list[PlanEntry] = []
         for raw in items:
             item: BookItem = raw  # type: ignore[assignment]
             book_id = str(item.get("id") or "")

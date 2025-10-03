@@ -1,9 +1,10 @@
 from __future__ import annotations
 
-import logging
+import contextlib
 import json
+import logging
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import typer
 
@@ -30,15 +31,36 @@ class JsonFormatter(logging.Formatter):
         for k, v in record.__dict__.items():
             if k.startswith("_"):
                 continue
-            if k in ("name", "msg", "args", "levelname", "levelno", "pathname", "filename", "module",
-                     "exc_info", "exc_text", "stack_info", "lineno", "funcName", "created", "msecs",
-                     "relativeCreated", "thread", "threadName", "processName", "process", "asctime"):
+            if k in (
+                "name",
+                "msg",
+                "args",
+                "levelname",
+                "levelno",
+                "pathname",
+                "filename",
+                "module",
+                "exc_info",
+                "exc_text",
+                "stack_info",
+                "lineno",
+                "funcName",
+                "created",
+                "msecs",
+                "relativeCreated",
+                "thread",
+                "threadName",
+                "processName",
+                "process",
+                "asctime",
+            ):
                 continue
             payload[k] = v
         return json.dumps(payload, ensure_ascii=False)
 
+
 class SecretMaskFilter(logging.Filter):
-    def __init__(self, secrets: Optional[List[str]] | None = None) -> None:
+    def __init__(self, secrets: list[str] | None | None = None) -> None:
         self.secrets = [s for s in (secrets or []) if s]
 
     def _mask(self, value: Any) -> Any:
@@ -71,7 +93,8 @@ class SecretMaskFilter(logging.Filter):
             pass
         return True
 
-def _collect_secrets_from_settings(settings: Any) -> List[str]:
+
+def _collect_secrets_from_settings(settings: Any) -> list[str]:
     names = [
         "DROPBOX_ACCESS_TOKEN",
         "DROPBOX_REFRESH_TOKEN",
@@ -79,7 +102,7 @@ def _collect_secrets_from_settings(settings: Any) -> List[str]:
         "BOOKSCAN_PASSWORD",
         "BOOKSCAN_TOTP_SECRET",
     ]
-    secrets: List[str] = []
+    secrets: list[str] = []
     for n in names:
         try:
             v = getattr(settings, n, None)
@@ -89,7 +112,12 @@ def _collect_secrets_from_settings(settings: Any) -> List[str]:
             secrets.append(str(v))
     return secrets
 
-def _setup_logging(json_log: bool = False, log_file: Optional[str] = None, secrets_to_mask: Optional[List[str]] = None) -> logging.Logger:
+
+def _setup_logging(
+    json_log: bool = False,
+    log_file: str | None = None,
+    secrets_to_mask: list[str] | None = None,
+) -> logging.Logger:
     """
     ログ設定を初期化する。
     - 標準出力（StreamHandler）
@@ -132,7 +160,7 @@ def _setup_logging(json_log: bool = False, log_file: Optional[str] = None, secre
     return logger
 
 
-def _filter_by_since(items: List[Dict[str, Any]], since: Optional[str]) -> List[Dict[str, Any]]:
+def _filter_by_since(items: list[dict[str, Any]], since: str | None) -> list[dict[str, Any]]:
     """
     updated_at が since 以降のものだけを残す（inclusive）。
     updated_at が欠落/不正な場合は除外しない（安全側: 同期対象に含める）。
@@ -142,7 +170,7 @@ def _filter_by_since(items: List[Dict[str, Any]], since: Optional[str]) -> List[
     t = parse_timestamp(since)
     if not t:
         return items
-    out: List[Dict[str, Any]] = []
+    out: list[dict[str, Any]] = []
     for it in items:
         ts = parse_timestamp(str(it.get("updated_at") or ""))
         if ts is None or ts >= t:
@@ -151,12 +179,12 @@ def _filter_by_since(items: List[Dict[str, Any]], since: Optional[str]) -> List[
 
 
 def _apply_filters(
-    items: List[Dict[str, Any]],
-    exclude_ext: Optional[List[str]] = None,
-    min_size: Optional[int] = None,
-    max_size: Optional[int] = None,
-    exclude_keyword: Optional[List[str]] = None,
-) -> List[Dict[str, Any]]:
+    items: list[dict[str, Any]],
+    exclude_ext: list[str] | None = None,
+    min_size: int | None = None,
+    max_size: int | None = None,
+    exclude_keyword: list[str] | None = None,
+) -> list[dict[str, Any]]:
     """
     追加フィルタを適用する。
     - exclude_ext: 拡張子（先頭ドットは無視、大小無視）に一致するものを除外
@@ -168,7 +196,7 @@ def _apply_filters(
     if not (exts or keywords or min_size is not None or max_size is not None):
         return items
 
-    out: List[Dict[str, Any]] = []
+    out: list[dict[str, Any]] = []
     for it in items:
         # ext 判定
         ext = str(it.get("ext") or "").lower().lstrip(".")
@@ -177,7 +205,7 @@ def _apply_filters(
 
         # size 判定
         size_val = it.get("size")
-        size: Optional[int]
+        size: int | None
         try:
             size = int(size_val)
         except Exception:
@@ -200,28 +228,28 @@ def _apply_filters(
 @sync_app.callback(invoke_without_command=True)
 def sync(
     dry_run: bool = typer.Option(False, help="Dropboxへアップロードせず計画のみ表示"),
-    since: Optional[str] = typer.Option(
+    since: str | None = typer.Option(
         None,
         "--since",
         help="更新日でフィルタ（YYYY-MM-DD など）。指定日以降のみ対象",
     ),
-    exclude_ext: Optional[List[str]] = typer.Option(
+    exclude_ext: list[str] | None = typer.Option(
         None,
         "--exclude-ext",
         help="除外: 拡張子（繰り返し指定可）。例: --exclude-ext pdf --exclude-ext zip",
     ),
-    min_size: Optional[int] = typer.Option(None, "--min-size", help="除外: 指定バイト数未満を除外"),
-    max_size: Optional[int] = typer.Option(None, "--max-size", help="除外: 指定バイト数より大を除外"),
-    exclude_keyword: Optional[List[str]] = typer.Option(
+    min_size: int | None = typer.Option(None, "--min-size", help="除外: 指定バイト数未満を除外"),
+    max_size: int | None = typer.Option(None, "--max-size", help="除外: 指定バイト数より大を除外"),
+    exclude_keyword: list[str] | None = typer.Option(
         None,
         "--exclude-keyword",
         help="除外: タイトルに含むキーワード（繰り返し指定可）",
     ),
     json_log: bool = typer.Option(False, "--json-log", help="ログをJSON形式で出力"),
-    log_file: Optional[str] = typer.Option(
+    log_file: str | None = typer.Option(
         None,
         "--log-file",
-        help="ログをファイルへ出力（パス指定、未指定時は出力しない。例: .logs/bds.log または .logs/）",
+        help="ログをファイルへ出力（パス指定、未指定時は出力しない。例: .logs/bds.log）",
     ),
 ) -> None:
     """
@@ -238,23 +266,25 @@ def sync(
         typer.secho(f"設定エラー: {e}", fg=typer.colors.RED)
         raise typer.Exit(code=2)
 
-    logger = _setup_logging(json_log=json_log, log_file=log_file, secrets_to_mask=_collect_secrets_from_settings(settings))
+    logger = _setup_logging(
+        json_log=json_log,
+        log_file=log_file,
+        secrets_to_mask=_collect_secrets_from_settings(settings),
+    )
     logger.info("sync start dry_run=%s", dry_run)
 
     # 依存の遅延インポート（dry-run時はDropbox SDKを読み込まない）
+    from .bookscan_client import BookscanClient
     from .state_store import StateStore
     from .sync_planner import SyncPlanner
-    from .bookscan_client import BookscanClient
 
     state_store = StateStore(settings)
     state = state_store.read()
 
     # Bookscan 認証と一覧取得（未実装でも動くようにフォールバック）
     bookscan = BookscanClient(settings)
-    try:
+    with contextlib.suppress(NotImplementedError):
         bookscan.login()
-    except NotImplementedError:
-        pass
 
     try:
         items = bookscan.list_downloadables()
@@ -281,9 +311,12 @@ def sync(
                 continue
             rel = str(entry.get("relpath") or entry.get("filename") or "")
             dest = f"{root}/{rel}" if rel and root else (rel or root)
+            title = entry.get("title", "")
+            size = entry.get("size")
+            ext = entry.get("ext")
             typer.echo(
                 f"[DRY-RUN] upload book_id={entry.get('book_id')} -> {dest} "
-                f"(title='{entry.get('title','')}', size={entry.get('size')}, ext={entry.get('ext')})"
+                f"(title='{title}', size={size}, ext={ext})"
             )
         logger.info("dry-run complete actions=%d", len(plan))
         return
@@ -319,21 +352,21 @@ def list_cmd(
         "--source",
         help="表示対象: 'bookscan'（取得一覧） もしくは 'state'（保存済みState）",
     ),
-    since: Optional[str] = typer.Option(None, help="更新日でフィルタ（YYYY-MM-DD など）"),
-    exclude_ext: Optional[List[str]] = typer.Option(
+    since: str | None = typer.Option(None, help="更新日でフィルタ（YYYY-MM-DD など）"),
+    exclude_ext: list[str] | None = typer.Option(
         None,
         "--exclude-ext",
         help="除外: 拡張子（繰り返し指定可）。例: --exclude-ext pdf --exclude-ext zip",
     ),
-    min_size: Optional[int] = typer.Option(None, "--min-size", help="除外: 指定バイト数未満を除外"),
-    max_size: Optional[int] = typer.Option(None, "--max-size", help="除外: 指定バイト数より大を除外"),
-    exclude_keyword: Optional[List[str]] = typer.Option(
+    min_size: int | None = typer.Option(None, "--min-size", help="除外: 指定バイト数未満を除外"),
+    max_size: int | None = typer.Option(None, "--max-size", help="除外: 指定バイト数より大を除外"),
+    exclude_keyword: list[str] | None = typer.Option(
         None,
         "--exclude-keyword",
         help="除外: タイトルに含むキーワード（繰り返し指定可）",
     ),
     json_log: bool = typer.Option(False, "--json-log", help="ログをJSON形式で出力"),
-    log_file: Optional[str] = typer.Option(
+    log_file: str | None = typer.Option(
         None, "--log-file", help="ログをファイルへ出力（パス指定、未指定時は出力しない）"
     ),
 ) -> None:
@@ -343,7 +376,11 @@ def list_cmd(
     - source=state: StateStore から既存の同期情報を表示
     """
     settings = load_settings()
-    logger = _setup_logging(json_log=json_log, log_file=log_file, secrets_to_mask=_collect_secrets_from_settings(settings))
+    logger = _setup_logging(
+        json_log=json_log,
+        log_file=log_file,
+        secrets_to_mask=_collect_secrets_from_settings(settings),
+    )
 
     if source.lower() == "state":
         from .state_store import StateStore
@@ -358,7 +395,7 @@ def list_cmd(
         if since:
             t = parse_timestamp(since)
             if t:
-                tmp: Dict[str, Any] = {}
+                tmp: dict[str, Any] = {}
                 for book_id, meta in items.items():
                     ts = parse_timestamp(str(meta.get("updated_at") or ""))
                     if ts is None or ts >= t:
@@ -378,10 +415,8 @@ def list_cmd(
     from .bookscan_client import BookscanClient
 
     client = BookscanClient(settings)
-    try:
+    with contextlib.suppress(Exception):
         client.login()
-    except Exception:
-        pass
 
     try:
         items = client.list_downloadables()
@@ -414,14 +449,16 @@ app.add_typer(logout_app, name="logout")
 # ---- login subcommands ----
 @login_app.command("dropbox")
 def login_dropbox(
-    open_browser: bool = typer.Option(True, "--open-browser/--no-open-browser", help="認可URLをブラウザで開く"),
+    open_browser: bool = typer.Option(
+        True, "--open-browser/--no-open-browser", help="認可URLをブラウザで開く"
+    ),
     redirect_uri: str = typer.Option("http://localhost:53682/callback", help="Redirect URI"),
     scopes: str = typer.Option(
         "files.metadata.read files.metadata.write files.content.read files.content.write",
         help="スペース区切りのスコープ",
     ),
-    code: Optional[str] = typer.Option(None, help="認可コード（取得後に交換する場合に指定）"),
-    code_verifier: Optional[str] = typer.Option(None, help="PKCEのcode_verifier（交換時に必要）"),
+    code: str | None = typer.Option(None, help="認可コード（取得後に交換する場合に指定）"),
+    code_verifier: str | None = typer.Option(None, help="PKCEのcode_verifier（交換時に必要）"),
 ) -> None:
     """
     Dropbox OAuth (PKCE) の補助。二段階で利用:
@@ -434,7 +471,12 @@ def login_dropbox(
         typer.secho("設定エラー: DROPBOX_APP_KEY を設定してください", fg=typer.colors.RED)
         raise typer.Exit(code=2)
 
-    import base64, hashlib, os, webbrowser, requests  # type: ignore
+    import base64
+    import hashlib
+    import os
+    import webbrowser
+
+    import requests  # type: ignore
 
     def _mk_verifier() -> str:
         raw = base64.urlsafe_b64encode(os.urandom(64)).rstrip(b"=")
@@ -482,10 +524,8 @@ def login_dropbox(
     typer.echo("\ncode_verifier (保存して次のステップで使用):")
     typer.echo(verifier)
     if open_browser:
-        try:
+        with contextlib.suppress(Exception):
             webbrowser.open(auth_url)
-        except Exception:
-            pass
 
 
 @login_app.command("bookscan")
@@ -513,6 +553,7 @@ def logout_dropbox() -> None:
     except Exception as e:
         typer.secho(f"失敗しました: {e}", fg=typer.colors.RED)
         raise typer.Exit(code=1)
+
 
 if __name__ == "__main__":
     app()

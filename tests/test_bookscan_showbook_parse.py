@@ -60,4 +60,3 @@ def test_download_resolves_root_relative_url(tmp_path: Path, monkeypatch: Any) -
     dest = tmp_path / "file.pdf"
     c.download(item, str(dest))
     assert dest.read_bytes() == b"PDF"
-

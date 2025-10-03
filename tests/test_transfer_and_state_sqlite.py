@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Dict, Any
+from typing import Any
 
 from bds.config import Settings
 from bds.state_store import StateStore
@@ -30,7 +30,7 @@ class FakeDropboxClient:
     """
 
     def __init__(self) -> None:
-        self.files: Dict[str, Dict[str, Any]] = {}
+        self.files: dict[str, dict[str, Any]] = {}
         self.upload_calls: list[str] = []
 
     def _norm(self, path: str) -> str:
@@ -40,7 +40,7 @@ class FakeDropboxClient:
         # テストではフォルダ概念は持たず no-op
         return
 
-    def get_metadata(self, dropbox_path: str) -> Dict[str, object]:
+    def get_metadata(self, dropbox_path: str) -> dict[str, object]:
         p = self._norm(dropbox_path)
         if p in self.files:
             meta = self.files[p]
@@ -67,10 +67,10 @@ class FakeBookscanClient:
     渡された item['id'] に対応したバイト列を保存する。
     """
 
-    def __init__(self, contents_by_id: Dict[str, bytes]) -> None:
+    def __init__(self, contents_by_id: dict[str, bytes]) -> None:
         self.contents_by_id = contents_by_id
 
-    def download(self, item: Dict[str, Any], dest_path: str) -> None:
+    def download(self, item: dict[str, Any], dest_path: str) -> None:
         content = self.contents_by_id.get(str(item.get("id")), b"")
         Path(dest_path).write_bytes(content)
 

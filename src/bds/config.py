@@ -1,37 +1,35 @@
 from __future__ import annotations
 
-from typing import Optional
-
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
     # Bookscan
-    BOOKSCAN_EMAIL: Optional[str] = None
-    BOOKSCAN_PASSWORD: Optional[str] = None
-    BOOKSCAN_TOTP_SECRET: Optional[str] = None
+    BOOKSCAN_EMAIL: str | None = None
+    BOOKSCAN_PASSWORD: str | None = None
+    BOOKSCAN_TOTP_SECRET: str | None = None
     BOOKSCAN_BASE_URL: str = "https://www.bookscan.co.jp"
     # デバッグ用: HTTP未実装でもdry-run/開発を進めるためのHTML入力（ファイルパス or 生HTML or http(s)URL）
-    BOOKSCAN_DEBUG_HTML_PATH: Optional[str] = None
+    BOOKSCAN_DEBUG_HTML_PATH: str | None = None
 
     # Bookscan HTTPログイン/一覧（任意設定：提供時のみ使用）
-    BOOKSCAN_LOGIN_URL: Optional[str] = None
+    BOOKSCAN_LOGIN_URL: str | None = None
     BOOKSCAN_LOGIN_EMAIL_FIELD: str = "email"
     BOOKSCAN_LOGIN_PASSWORD_FIELD: str = "password"
     BOOKSCAN_LOGIN_TOTP_FIELD: str = "otp"  # 将来のTOTP手動入力/自動化で利用予定
 
     # 一覧取得URLテンプレート（{page} を含めるとページネーション）
-    BOOKSCAN_LIST_URL_TEMPLATE: Optional[str] = None
+    BOOKSCAN_LIST_URL_TEMPLATE: str | None = None
     BOOKSCAN_LIST_MAX_PAGES: int = 1
     BOOKSCAN_LIST_STOP_ON_EMPTY: bool = True
 
     # Dropbox（簡易運用：固定アクセストークン）
-    DROPBOX_ACCESS_TOKEN: Optional[str] = None
+    DROPBOX_ACCESS_TOKEN: str | None = None
 
     # Dropbox（推奨：OAuth/Refresh Token運用）
-    DROPBOX_APP_KEY: Optional[str] = None
-    DROPBOX_APP_SECRET: Optional[str] = None
-    DROPBOX_REFRESH_TOKEN: Optional[str] = None
+    DROPBOX_APP_KEY: str | None = None
+    DROPBOX_APP_SECRET: str | None = None
+    DROPBOX_REFRESH_TOKEN: str | None = None
     DROPBOX_TOKEN_ROTATE: bool = True
 
     # 同期先
@@ -44,8 +42,8 @@ class Settings(BaseSettings):
     SYNC_MODE: str = "incremental"  # incremental|full|dry-run
     CONCURRENCY: int = 2
     RATE_LIMIT_QPS: float = 0.5
-    BOOKSCAN_RATE_LIMIT_QPS: Optional[float] = None
-    DROPBOX_RATE_LIMIT_QPS: Optional[float] = None
+    BOOKSCAN_RATE_LIMIT_QPS: float | None = None
+    DROPBOX_RATE_LIMIT_QPS: float | None = None
     USER_AGENT: str = "bookscan-dropbox-sync/0.1 (+https://github.com/iyoda/bookscan_dropbox_sync)"
     HEADLESS: bool = True
     HTTP_TIMEOUT: int = 60

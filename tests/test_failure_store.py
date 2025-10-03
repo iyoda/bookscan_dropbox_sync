@@ -1,13 +1,13 @@
 from __future__ import annotations
 
-import json
 from pathlib import Path
+
 import pytest
 
 from bds.config import Settings
+from bds.failure_store import FailureStore
 from bds.state_store import StateStore
 from bds.transfer import TransferEngine
-from bds.failure_store import FailureStore
 
 
 def test_failure_store_json_record_and_list(tmp_path: Path) -> None:

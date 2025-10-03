@@ -4,9 +4,9 @@ import json
 import re
 import sqlite3
 from contextlib import closing
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -15,7 +15,7 @@ from .config import Settings
 
 def _now_iso() -> str:
     # UTC naive with Z suffix for readability
-    return datetime.now(timezone.utc).replace(tzinfo=None).isoformat(timespec="seconds") + "Z"
+    return datetime.now(UTC).replace(tzinfo=None).isoformat(timespec="seconds") + "Z"
 
 
 class FailureRecord(BaseModel):
@@ -28,6 +28,7 @@ class FailureRecord(BaseModel):
     - message: 簡易なエラーメッセージ
     - ts: 発生時刻（UTC ISO8601, Z）
     """
+
     book_id: str
     stage: str
     error_class: str
@@ -80,7 +81,7 @@ class FailureStore:
             con.commit()
 
     # ---- Classification ----
-    def _classify_exception(self, exc: BaseException) -> Tuple[str, bool]:
+    def _classify_exception(self, exc: BaseException) -> tuple[str, bool]:
         """
         ざっくりとしたエラーカテゴリ分類とリトライ可否の推定。
         依存の強い型判定は避け、メッセージ/一般的な例外で判定する。
@@ -89,7 +90,11 @@ class FailureStore:
         lower = msg.lower()
 
         # 明示的な整合性系は非リトライ
-        if "content_hash mismatch" in lower or "size mismatch" in lower or "downloaded file is empty" in lower:
+        if (
+            "content_hash mismatch" in lower
+            or "size mismatch" in lower
+            or "downloaded file is empty" in lower
+        ):
             return "integrity_mismatch", False
 
         # レート制限/サーバ側の一時エラー
@@ -101,11 +106,15 @@ class FailureStore:
         # タイムアウト/接続系はリトライ可
         if "timeout" in lower or "timed out" in lower:
             return "timeout", True
-        if "connection error" in lower or "connection reset" in lower or "connection aborted" in lower:
+        if (
+            "connection error" in lower
+            or "connection reset" in lower
+            or "connection aborted" in lower
+        ):
             return "http_error", True
 
         # 一般的なI/O
-        if isinstance(exc, (OSError, IOError)):
+        if isinstance(exc, OSError | IOError):
             return "io_error", False
 
         # requests系（文字列ベースでの緩い判定）
@@ -116,7 +125,7 @@ class FailureStore:
         # 既定
         return "runtime_error", False
 
-    def classify_exception(self, exc: BaseException) -> Tuple[str, bool]:
+    def classify_exception(self, exc: BaseException) -> tuple[str, bool]:
         """
         例外を分類して (error_class, retryable) を返す公開API。
         """
@@ -129,7 +138,13 @@ class FailureStore:
         message = str(exc)
         if len(message) > 1000:
             message = message[:1000] + "...(truncated)"
-        rec = FailureRecord(book_id=book_id, stage=stage, error_class=error_class, retryable=retryable, message=message)
+        rec = FailureRecord(
+            book_id=book_id,
+            stage=stage,
+            error_class=error_class,
+            retryable=retryable,
+            message=message,
+        )
 
         if self.backend == "json":
             assert hasattr(self, "log_path")
@@ -144,12 +159,19 @@ class FailureStore:
                     INSERT INTO failures (book_id, stage, error_class, retryable, message, ts)
                     VALUES (?, ?, ?, ?, ?, ?)
                     """,
-                    (rec.book_id, rec.stage, rec.error_class, 1 if rec.retryable else 0, rec.message, rec.ts),
+                    (
+                        rec.book_id,
+                        rec.stage,
+                        rec.error_class,
+                        1 if rec.retryable else 0,
+                        rec.message,
+                        rec.ts,
+                    ),
                 )
                 con.commit()
         return rec
 
-    def list_recent(self, limit: int = 100) -> List[Dict[str, Any]]:
+    def list_recent(self, limit: int = 100) -> list[dict[str, Any]]:
         """
         直近の失敗を返す（新しい順）。テストやデバッグ用途の簡易API。
         """
@@ -161,7 +183,7 @@ class FailureStore:
                 lines = self.log_path.read_text(encoding="utf-8").splitlines()
             except Exception:
                 return []
-            out: List[Dict[str, Any]] = []
+            out: list[dict[str, Any]] = []
             for line in lines[-limit:]:
                 try:
                     obj = json.loads(line)
@@ -184,7 +206,7 @@ class FailureStore:
                     (int(limit),),
                 )
                 rows = cur.fetchall()
-                out: List[Dict[str, Any]] = []
+                out: list[dict[str, Any]] = []
                 for r in rows:
                     out.append(
                         {

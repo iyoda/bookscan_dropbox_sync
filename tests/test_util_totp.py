@@ -15,4 +15,3 @@ def test_totp_rfc_vectors_sha1_8digits() -> None:
 
     # Time = 2000000000 -> 69279037
     assert totp(secret, t=2000000000, step=30, digits=8) == "69279037"
-

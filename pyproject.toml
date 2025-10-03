@@ -51,6 +51,7 @@ target-version = "py311"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP", "SIM", "C4"]
+ignore = ["B008", "B904", "E501"]  # B008: typer defaults, B904: raise from, E501: line length
 
 [tool.ruff.lint.isort]
 known-first-party = ["bds"]

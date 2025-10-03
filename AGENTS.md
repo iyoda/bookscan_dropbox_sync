@@ -33,4 +33,3 @@
 - Never commit secrets. Use `.env` or `.envrc`; see `.env.example`. Logs mask sensitive values.
 - For local dry-run, set `BOOKSCAN_DEBUG_HTML_PATH=samples/bookscan_list_sample.html` to avoid real network calls.
 - Optional audit: `pip-audit -l` (available via pre-commit).
-

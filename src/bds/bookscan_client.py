@@ -1,17 +1,18 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
-from pathlib import Path
+import contextlib
 import os
+from pathlib import Path
+from typing import Any
 
 import requests
 from bs4 import BeautifulSoup
-from tenacity import Retrying, stop_after_attempt, wait_random_exponential, retry_if_exception_type
+from tenacity import Retrying, retry_if_exception_type, stop_after_attempt, wait_random_exponential
 
 from .config import Settings
 from .util import RateLimiter, totp
 
-ItemMeta = Dict[str, Any]
+ItemMeta = dict[str, Any]
 
 
 class BookscanClient:
@@ -66,7 +67,9 @@ class BookscanClient:
             # Cookie確立のためのウォームアップ
             try:
                 self._rl.throttle()
-                self._call_with_retry(self.session.get, self.base_url, timeout=self.timeout).raise_for_status()
+                self._call_with_retry(
+                    self.session.get, self.base_url, timeout=self.timeout
+                ).raise_for_status()
             except Exception:
                 # base_urlへのウォームアップ失敗は無視（後続POSTで成功する可能性もある）
                 pass
@@ -76,7 +79,7 @@ class BookscanClient:
                 # ログインURL未指定の場合はここまで（ウォームアップのみ）
                 return
 
-            payload: Dict[str, str] = {
+            payload: dict[str, str] = {
                 getattr(self.settings, "BOOKSCAN_LOGIN_EMAIL_FIELD", "email"): str(email),
                 getattr(self.settings, "BOOKSCAN_LOGIN_PASSWORD_FIELD", "password"): str(password),
             }
@@ -84,19 +87,19 @@ class BookscanClient:
             totp_field = getattr(self.settings, "BOOKSCAN_LOGIN_TOTP_FIELD", "otp")
             secret = getattr(self.settings, "BOOKSCAN_TOTP_SECRET", None)
             if totp_field and secret:
-                try:
+                # TOTP生成失敗時は無視（後続で失敗した場合も例外は伝播しない）
+                with contextlib.suppress(Exception):
                     payload[totp_field] = totp(secret)
-                except Exception:
-                    # TOTP生成失敗時は無視（後続で失敗した場合も例外は伝播しない）
-                    pass
 
             self._rl.throttle()
-            self._call_with_retry(self.session.post, login_url, data=payload, timeout=self.timeout).raise_for_status()
+            self._call_with_retry(
+                self.session.post, login_url, data=payload, timeout=self.timeout
+            ).raise_for_status()
         except Exception:
             # M1では例外を伝播しない
             return
 
-    def list_downloadables(self) -> List[ItemMeta]:
+    def list_downloadables(self) -> list[ItemMeta]:
         """
         ダウンロード可能一覧を返す。
         優先順位:
@@ -110,14 +113,14 @@ class BookscanClient:
         debug_src = getattr(self.settings, "BOOKSCAN_DEBUG_HTML_PATH", None)
         if debug_src:
             try:
-                html_docs: List[str] = []
+                html_docs: list[str] = []
                 p = Path(debug_src)
 
                 if p.exists():
                     if p.is_file():
                         html_docs = [p.read_text(encoding="utf-8")]
                     elif p.is_dir():
-                        files = sorted(list(p.glob("*.html"))) + sorted(list(p.glob("*.htm")))
+                        files = sorted(p.glob("*.html")) + sorted(p.glob("*.htm"))
                         for f in files:
                             try:
                                 html_docs.append(f.read_text(encoding="utf-8"))
@@ -129,7 +132,9 @@ class BookscanClient:
                 elif debug_src.startswith("http://") or debug_src.startswith("https://"):
                     try:
                         self._rl.throttle()
-                        resp = self._call_with_retry(self.session.get, debug_src, timeout=self.timeout)
+                        resp = self._call_with_retry(
+                            self.session.get, debug_src, timeout=self.timeout
+                        )
                         resp.raise_for_status()
                         html_docs = [resp.text]
                     except Exception:
@@ -145,7 +150,7 @@ class BookscanClient:
                         except Exception:
                             continue
 
-                items: List[ItemMeta] = []
+                items: list[ItemMeta] = []
                 for html in html_docs:
                     parsed = self._parse_any_html(html)
                     items.extend(parsed)
@@ -167,7 +172,7 @@ class BookscanClient:
             max_pages = 1
             stop_on_empty = True
 
-        items: List[ItemMeta] = []
+        items: list[ItemMeta] = []
         try:
             for page in range(1, max_pages + 1):
                 url = template.replace("{page}", str(page)) if "{page}" in template else template
@@ -246,7 +251,7 @@ class BookscanClient:
             dp.write_bytes(b"")
 
     @staticmethod
-    def parse_downloadables(html: str) -> List[ItemMeta]:
+    def parse_downloadables(html: str) -> list[ItemMeta]:
         """
         ダウンロード可能一覧HTMLをパースして、ItemMetaのリストを返す（最小パーサ）。
         期待する属性（柔軟に拡張可能）:
@@ -258,14 +263,14 @@ class BookscanClient:
           - data-url: PDFのURL（任意）
         """
         soup = BeautifulSoup(html, "html.parser")
-        items: List[ItemMeta] = []
+        items: list[ItemMeta] = []
         for el in soup.select(".download-item"):
             book_id = (el.get("data-id") or "").strip()
             if not book_id:
                 # IDが無ければスキップ
                 continue
 
-            title_raw: Optional[str] = (el.get("data-title") or "").strip() or None
+            title_raw: str | None = (el.get("data-title") or "").strip() or None
             ext_raw = (el.get("data-ext") or "pdf").strip()
             ext = ext_raw[1:] if ext_raw.startswith(".") else ext_raw
 
@@ -297,20 +302,20 @@ class BookscanClient:
 
     # ---- additional parsers for real Bookscan pages (debug input) ----
     @staticmethod
-    def _parse_showbook_page(html: str) -> List[ItemMeta]:
+    def _parse_showbook_page(html: str) -> list[ItemMeta]:
         """
         showbook.php ページを直接パースして1件の ItemMeta を返す（存在すれば）。
         - window.routing の path クエリから bid と f（ファイル名）を抽出
         - ダウンロードリンクの href（/download.php?...）を pdf_url として拾う
         - タイトルは f から .pdf を除去したもの、なければ h2.mybook_modal_title
         """
-        from urllib.parse import urlparse, parse_qs, unquote
         import re
+        from urllib.parse import parse_qs, unquote, urlparse
 
         soup = BeautifulSoup(html, "html.parser")
-        bid: Optional[str] = None
-        title: Optional[str] = None
-        pdf_url: Optional[str] = None
+        bid: str | None = None
+        title: str | None = None
+        pdf_url: str | None = None
 
         for sc in soup.find_all("script"):
             s = sc.string or sc.get_text()
@@ -336,7 +341,7 @@ class BookscanClient:
                 pdf_url = href
                 # タイトルの補完（f= から）
                 try:
-                    from urllib.parse import urlparse, parse_qs, unquote
+                    from urllib.parse import parse_qs, unquote, urlparse
 
                     q = parse_qs(urlparse(href).query)
                     if not title and q.get("f"):
@@ -367,17 +372,18 @@ class BookscanClient:
         return [item]
 
     @staticmethod
-    def _parse_bookshelf_list_page(html: str) -> List[ItemMeta]:
+    def _parse_bookshelf_list_page(html: str) -> list[ItemMeta]:
         """
-        bookshelf_all_list.php のリストページから showbook へのリンクを抽出して ItemMeta 配列を作成。
+        bookshelf_all_list.php のリストページから showbook へのリンクを抽出して
+        ItemMeta 配列を作成。
         - a[href*='showbook.php'] のクエリから bid と f を抽出
         - f が無い場合は近傍の h3 テキストをタイトルとして採用
         """
-        from urllib.parse import urlparse, parse_qs, unquote
         import re
+        from urllib.parse import parse_qs, unquote, urlparse
 
         soup = BeautifulSoup(html, "html.parser")
-        items: List[ItemMeta] = []
+        items: list[ItemMeta] = []
         for a in soup.select("a[href*='showbook.php']"):
             href = a.get("href") or ""
             if not href:
@@ -392,7 +398,7 @@ class BookscanClient:
                     bid = m.group(1)
             if not bid:
                 continue
-            title: Optional[str] = None
+            title: str | None = None
             if q.get("f"):
                 try:
                     title = unquote(q["f"][0])
@@ -406,16 +412,18 @@ class BookscanClient:
                 title = bid
             if title.lower().endswith(".pdf"):
                 title = title[:-4]
-            items.append({
-                "id": bid,
-                "title": title,
-                "ext": "pdf",
-                "updated_at": "",
-                "size": 0,
-            })
+            items.append(
+                {
+                    "id": bid,
+                    "title": title,
+                    "ext": "pdf",
+                    "updated_at": "",
+                    "size": 0,
+                }
+            )
         return items
 
-    def _parse_any_html(self, html: str) -> List[ItemMeta]:
+    def _parse_any_html(self, html: str) -> list[ItemMeta]:
         """
         複数のパーサを順に試す（.download-item → showbook → bookshelf）。
         """

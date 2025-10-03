@@ -1,10 +1,8 @@
 from __future__ import annotations
 
-from typing import Dict, Optional
-
 import dropbox
 from dropbox.exceptions import ApiError, BadInputError
-from dropbox.files import FileMetadata, FolderMetadata, WriteMode, UploadSessionCursor, CommitInfo
+from dropbox.files import CommitInfo, FileMetadata, FolderMetadata, UploadSessionCursor, WriteMode
 
 from .config import Settings
 from .util import RateLimiter
@@ -20,7 +18,7 @@ class DropboxClient:
 
     def __init__(self, settings: Settings) -> None:
         self.settings = settings
-        self._dbx: Optional[dropbox.Dropbox] = None
+        self._dbx: dropbox.Dropbox | None = None
         qps = getattr(self.settings, "DROPBOX_RATE_LIMIT_QPS", None)
         if qps is None:
             qps = getattr(self.settings, "RATE_LIMIT_QPS", 0.0)
@@ -82,7 +80,9 @@ class DropboxClient:
 
         # 設定から閾値/チャンクサイズを取得（未設定時は安全な既定値）
         try:
-            threshold = int(getattr(self.settings, "DROPBOX_CHUNK_UPLOAD_THRESHOLD", 8 * 1024 * 1024))
+            threshold = int(
+                getattr(self.settings, "DROPBOX_CHUNK_UPLOAD_THRESHOLD", 8 * 1024 * 1024)
+            )
         except Exception:
             threshold = 8 * 1024 * 1024
         try:
@@ -95,6 +95,7 @@ class DropboxClient:
         file_size = None
         try:
             from pathlib import Path
+
             file_size = Path(local_path).stat().st_size
         except Exception:
             pass
@@ -128,7 +129,7 @@ class DropboxClient:
             self._rl.throttle()
             dbx.files_upload(data, dp, mode=WriteMode.add, mute=True, strict_conflict=False)
 
-    def get_metadata(self, dropbox_path: str) -> Dict[str, object]:
+    def get_metadata(self, dropbox_path: str) -> dict[str, object]:
         """
         Dropbox上のファイル/フォルダのメタデータ取得（同名判定の基礎）。
         見つからない場合は {"exists": False, "path": "..."} を返す。
@@ -140,14 +141,23 @@ class DropboxClient:
             md = dbx.files_get_metadata(dp)
         except ApiError:
             return {"exists": False, "path": dp}
-        out: Dict[str, object] = {"exists": True, "path": dp, "name": md.name, "id": getattr(md, "id", None)}
+        out: dict[str, object] = {
+            "exists": True,
+            "path": dp,
+            "name": md.name,
+            "id": getattr(md, "id", None),
+        }
         if isinstance(md, FileMetadata):
             out.update(
                 {
                     "type": "file",
                     "size": md.size,
-                    "client_modified": md.client_modified.isoformat() if hasattr(md, "client_modified") else None,
-                    "server_modified": md.server_modified.isoformat() if hasattr(md, "server_modified") else None,
+                    "client_modified": (
+                        md.client_modified.isoformat() if hasattr(md, "client_modified") else None
+                    ),
+                    "server_modified": (
+                        md.server_modified.isoformat() if hasattr(md, "server_modified") else None
+                    ),
                     "content_hash": md.content_hash,
                 }
             )

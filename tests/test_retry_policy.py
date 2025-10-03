@@ -24,7 +24,7 @@ class FlakyBookscanClient:
             raise TimeoutError("timed out")
         size = int(item.get("size") or 3)
         # 要求サイズのダミーコンテンツを書き込む
-        content = (b"A" * size)
+        content = b"A" * size
         with open(dest_path, "wb") as f:
             f.write(content)
 
@@ -130,7 +130,7 @@ def test_retry_download_eventual_success(tmp_path: Path) -> None:
     assert int(meta["size"]) == 3
     assert meta["dropbox_path"].endswith("/file.pdf")
     # メモリDropboxにもファイルが存在している
-    assert any(p.endswith("/file.pdf") for p in dropbox.files.keys())
+    assert any(p.endswith("/file.pdf") for p in dropbox.files)
 
 
 def test_retry_upload_429_eventual_success(tmp_path: Path) -> None:
@@ -170,4 +170,4 @@ def test_retry_upload_429_eventual_success(tmp_path: Path) -> None:
     assert int(meta["size"]) == 4
     assert meta["dropbox_path"].endswith("/file2.pdf")
     # メモリDropboxにもファイルが存在している
-    assert any(p.endswith("/file2.pdf") for p in dropbox.files.keys())
+    assert any(p.endswith("/file2.pdf") for p in dropbox.files)

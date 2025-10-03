@@ -1,13 +1,12 @@
 from __future__ import annotations
 
-import re
-import hashlib
-import time
-import threading
-from datetime import datetime, timezone
-from typing import Optional
 import base64
+import hashlib
 import hmac
+import re
+import threading
+import time
+from datetime import UTC, datetime
 
 
 def safe_filename(name: str, max_length: int = 150) -> str:
@@ -24,7 +23,7 @@ def safe_filename(name: str, max_length: int = 150) -> str:
     return s
 
 
-def parse_timestamp(value: str) -> Optional[datetime]:
+def parse_timestamp(value: str) -> datetime | None:
     """
     文字列の日時をパースして naive UTC の datetime を返す。
     対応例: 'YYYY-MM-DD', 'YYYY-MM-DD HH:MM:SS', ISO8601（末尾Zは+00:00として解釈）
@@ -33,7 +32,7 @@ def parse_timestamp(value: str) -> Optional[datetime]:
     if not value:
         return None
     v = str(value).strip()
-    dt: Optional[datetime] = None
+    dt: datetime | None = None
     try:
         if v.endswith("Z"):
             v = v[:-1] + "+00:00"
@@ -50,7 +49,7 @@ def parse_timestamp(value: str) -> Optional[datetime]:
     if dt is None:
         return None
     if dt.tzinfo is not None:
-        dt = dt.astimezone(timezone.utc).replace(tzinfo=None)
+        dt = dt.astimezone(UTC).replace(tzinfo=None)
     return dt
 
 
@@ -69,12 +68,14 @@ def dropbox_content_hash(path: str, chunk_size: int = 4 * 1024 * 1024) -> str:
             overall.update(hashlib.sha256(chunk).digest())
     return overall.hexdigest()
 
+
 class RateLimiter:
     """
     単純なQPSベースのレートリミッタ（プロセス内・スレッドセーフ）。
     - qps <= 0 の場合は無効（スロットルしない）
     - acquire()/throttle() 呼び出しごとに最小間隔(1/qps)を確保
     """
+
     def __init__(self, qps: float) -> None:
         try:
             qps_val = float(qps)
@@ -110,7 +111,7 @@ def _base32_decode_no_padding(secret: str) -> bytes:
     return base64.b32decode(s, casefold=True)
 
 
-def totp(secret: str, t: Optional[int] = None, step: int = 30, digits: int = 6) -> str:
+def totp(secret: str, t: int | None = None, step: int = 30, digits: int = 6) -> str:
     """
     Generate TOTP code (SHA-1) from a base32 secret.
     - secret: base32-encoded shared secret (spaces allowed)
@@ -133,5 +134,5 @@ def totp(secret: str, t: Optional[int] = None, step: int = 30, digits: int = 6) 
         | ((digest[offset + 2] & 0xFF) << 8)
         | (digest[offset + 3] & 0xFF)
     )
-    otp = bin_code % (10 ** digits)
+    otp = bin_code % (10**digits)
     return str(otp).zfill(digits)

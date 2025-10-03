@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import json
 import sqlite3
-from contextlib import closing
+from contextlib import closing, suppress
 from pathlib import Path
-from typing import Any, Dict, Optional, List
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
@@ -12,17 +12,17 @@ from .config import Settings
 
 
 class StateItemModel(BaseModel):
-    updated_at: Optional[str] = None
-    size: Optional[int] = None
-    hash: Optional[str] = None
-    dropbox_path: Optional[str] = None
+    updated_at: str | None = None
+    size: int | None = None
+    hash: str | None = None
+    dropbox_path: str | None = None
 
     model_config = ConfigDict(extra="ignore")
 
 
 class StateModel(BaseModel):
     version: int = 1
-    items: Dict[str, StateItemModel] = Field(default_factory=dict)
+    items: dict[str, StateItemModel] = Field(default_factory=dict)
 
     model_config = ConfigDict(extra="ignore")
 
@@ -47,11 +47,11 @@ class StateStore:
             self._sqlite_maybe_migrate()
 
     # 共通: デフォルト状態
-    def _default_state(self) -> Dict[str, Any]:
+    def _default_state(self) -> dict[str, Any]:
         return {"version": 1, "items": {}}
 
     # JSON バックエンド実装
-    def _json_read(self) -> Dict[str, Any]:
+    def _json_read(self) -> dict[str, Any]:
         if not self.path.exists():
             return self._default_state()
         try:
@@ -69,7 +69,7 @@ class StateStore:
         except ValidationError:
             return self._default_state()
 
-    def _json_write(self, state: Dict[str, Any]) -> None:
+    def _json_write(self, state: dict[str, Any]) -> None:
         self.path.parent.mkdir(parents=True, exist_ok=True)
         # スキーマ検証（不正なら最小限の補正を行ってから保存）
         try:
@@ -78,7 +78,10 @@ class StateStore:
             items = state.get("items", {}) if isinstance(state, dict) else {}
             if not isinstance(items, dict):
                 items = {}
-            fixed = {"version": state.get("version", 1) if isinstance(state, dict) else 1, "items": items}
+            fixed = {
+                "version": state.get("version", 1) if isinstance(state, dict) else 1,
+                "items": items,
+            }
             model = StateModel.model_validate(fixed)
 
         with self.path.open("w", encoding="utf-8") as f:
@@ -126,7 +129,7 @@ class StateStore:
             # テーブル未作成などの例外は無視（以降の処理で作成/書込み）
             return
 
-        candidates: List[Path] = []
+        candidates: list[Path] = []
         try:
             if self.path.suffix:
                 candidates.append(self.path.with_suffix(".json"))
@@ -135,7 +138,7 @@ class StateStore:
         candidates.append(Path(".state/state.json"))
 
         # 重複除去（順序維持）
-        uniq: List[Path] = []
+        uniq: list[Path] = []
         seen = set()
         for p in candidates:
             if p in seen:
@@ -159,22 +162,20 @@ class StateStore:
                 # 破損/検証失敗などは次候補へ
                 continue
 
-    def _sqlite_read(self) -> Dict[str, Any]:
-        items: Dict[str, Dict[str, Any]] = {}
+    def _sqlite_read(self) -> dict[str, Any]:
+        items: dict[str, dict[str, Any]] = {}
         if not self.path.exists():
             return {"version": 1, "items": items}
         with closing(self._sqlite_connect()) as con, closing(con.cursor()) as cur:
             cur.execute("SELECT book_id, updated_at, size, hash, dropbox_path FROM items")
             for row in cur.fetchall():
                 book_id = str(row["book_id"])
-                meta: Dict[str, Any] = {}
+                meta: dict[str, Any] = {}
                 if row["updated_at"] is not None:
                     meta["updated_at"] = str(row["updated_at"])
                 if row["size"] is not None:
-                    try:
+                    with suppress(Exception):
                         meta["size"] = int(row["size"])
-                    except Exception:
-                        pass
                 if row["hash"] is not None:
                     meta["hash"] = str(row["hash"])
                 if row["dropbox_path"] is not None:
@@ -182,7 +183,7 @@ class StateStore:
                 items[book_id] = meta
         return {"version": 1, "items": items}
 
-    def _sqlite_write(self, state: Dict[str, Any]) -> None:
+    def _sqlite_write(self, state: dict[str, Any]) -> None:
         # スキーマ検証（可能なら行う）
         try:
             model = StateModel.model_validate(state)
@@ -224,7 +225,7 @@ class StateStore:
             con.commit()
 
     # 公開API
-    def read(self) -> Dict[str, Any]:
+    def read(self) -> dict[str, Any]:
         """
         Stateを読み込む。存在しない/壊れている場合は既定の空状態を返す。
         バックエンドに応じてJSON/SQLiteからロード。
@@ -233,7 +234,7 @@ class StateStore:
             return self._json_read()
         return self._sqlite_read()
 
-    def write(self, state: Dict[str, Any]) -> None:
+    def write(self, state: dict[str, Any]) -> None:
         """
         Stateを書き出す。必要なら親ディレクトリ/テーブルを作成。
         バックエンドに応じてJSON/SQLiteへ保存。
@@ -247,7 +248,7 @@ class StateStore:
             self._sqlite_write(state)
 
     # 便利メソッド（両バックエンド共通のシグネチャ）
-    def get_item(self, book_id: str) -> Optional[Dict[str, Any]]:
+    def get_item(self, book_id: str) -> dict[str, Any] | None:
         """
         指定book_idのメタ情報を返す（存在しない場合はNone）
         """
@@ -263,25 +264,26 @@ class StateStore:
         if not self.path.exists():
             return None
         with closing(self._sqlite_connect()) as con, closing(con.cursor()) as cur:
-            cur.execute("SELECT updated_at, size, hash, dropbox_path FROM items WHERE book_id = ?", (book_id,))
+            cur.execute(
+                "SELECT updated_at, size, hash, dropbox_path FROM items WHERE book_id = ?",
+                (book_id,),
+            )
             row = cur.fetchone()
             if not row:
                 return None
-            meta: Dict[str, Any] = {}
+            meta: dict[str, Any] = {}
             if row["updated_at"] is not None:
                 meta["updated_at"] = str(row["updated_at"])
             if row["size"] is not None:
-                try:
+                with suppress(Exception):
                     meta["size"] = int(row["size"])
-                except Exception:
-                    pass
             if row["hash"] is not None:
                 meta["hash"] = str(row["hash"])
             if row["dropbox_path"] is not None:
                 meta["dropbox_path"] = str(row["dropbox_path"])
             return meta
 
-    def upsert_item(self, book_id: str, meta: Dict[str, Any]) -> Dict[str, Any]:
+    def upsert_item(self, book_id: str, meta: dict[str, Any]) -> dict[str, Any]:
         """
         指定book_idのメタ情報を追加/更新し、保存後の最新Stateを返す。
         例のmeta: {"updated_at": "...", "size": 1234, "hash": "...", "dropbox_path": "..."}
@@ -302,9 +304,7 @@ class StateStore:
         except ValidationError:
             # 既知キーのみ採用
             valid = {
-                k: meta.get(k)
-                for k in ("updated_at", "size", "hash", "dropbox_path")
-                if k in meta
+                k: meta.get(k) for k in ("updated_at", "size", "hash", "dropbox_path") if k in meta
             }
         with closing(self._sqlite_connect()) as con, closing(con.cursor()) as cur:
             size = valid.get("size")

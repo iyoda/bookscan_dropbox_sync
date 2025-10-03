@@ -4,14 +4,15 @@ import logging
 import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
-from typing import Any, Dict, List, Optional
-from tenacity import Retrying, stop_after_attempt, wait_random_exponential, retry_if_exception
+from typing import Any
+
+from tenacity import Retrying, retry_if_exception, stop_after_attempt, wait_random_exponential
 
 from .bookscan_client import BookscanClient
 from .config import Settings
 from .dropbox_client import DropboxClient
-from .state_store import StateStore
 from .failure_store import FailureStore
+from .state_store import StateStore
 from .util import dropbox_content_hash
 
 
@@ -28,7 +29,7 @@ class TransferEngine:
         bookscan: BookscanClient,
         dropbox: DropboxClient,
         state_store: StateStore,
-        failure_store: Optional[FailureStore] = None,
+        failure_store: FailureStore | None = None,
     ) -> None:
         self.settings = settings
         self.bookscan = bookscan
@@ -121,7 +122,7 @@ class TransferEngine:
             candidate = self._append_version_suffix(dest, version)
             version += 1
 
-    def run(self, plan: List[Dict[str, Any]], dry_run: bool = False) -> None:
+    def run(self, plan: list[dict[str, Any]], dry_run: bool = False) -> None:
         """
         与えられたアップロード計画(plan)を実行する。
         - dry_run=True の場合は計画の表示のみ
@@ -151,7 +152,7 @@ class TransferEngine:
             max_workers = 2
         max_workers = max(1, max_workers)
 
-        def _worker(entry: Dict[str, Any]) -> None:
+        def _worker(entry: dict[str, Any]) -> None:
             if entry.get("action") != "upload":
                 return
 
@@ -162,7 +163,7 @@ class TransferEngine:
             local_tmp = tmp_dir / f"{book_id}.{ext}"
 
             # Bookscanからダウンロード
-            item_for_download: Dict[str, Any] = {
+            item_for_download: dict[str, Any] = {
                 "id": book_id,
                 "title": entry.get("title"),
                 "ext": ext,
@@ -172,7 +173,9 @@ class TransferEngine:
             # pdf_url（存在すれば）をダウンロード情報に引き継ぐ
             if entry.get("pdf_url"):
                 item_for_download["pdf_url"] = entry["pdf_url"]
-            self._call_with_retry(book_id, "download", self.bookscan.download, item_for_download, str(local_tmp))
+            self._call_with_retry(
+                book_id, "download", self.bookscan.download, item_for_download, str(local_tmp)
+            )
             # ダウンロード整合性チェック（サイズ/空ファイル）
             try:
                 try:
@@ -180,7 +183,7 @@ class TransferEngine:
                 except Exception:
                     actual_size = 0
                 exp_size_val = entry.get("size")
-                expected_size: Optional[int]
+                expected_size: int | None
                 try:
                     expected_size = int(exp_size_val) if exp_size_val is not None else None
                 except Exception:
@@ -188,7 +191,9 @@ class TransferEngine:
                 if actual_size <= 0:
                     raise RuntimeError(f"downloaded file is empty: {local_tmp} (book_id={book_id})")
                 if expected_size is not None and expected_size != actual_size:
-                    raise RuntimeError(f"download size mismatch: expected={expected_size} actual={actual_size} book_id={book_id}")
+                    raise RuntimeError(
+                        f"download size mismatch: expected={expected_size} actual={actual_size} book_id={book_id}"
+                    )
             except BaseException as e:
                 self.failure_store.record_failure(book_id, "verify", e)
                 raise
@@ -214,33 +219,49 @@ class TransferEngine:
                 else:
                     # コンフリクト: リネームして保存（メタ取得もリトライ）
                     uploaded_path = self._resolve_conflict_path_with_retry(book_id, dst)
-                    self._call_with_retry(book_id, "upload", self.dropbox.upload_file, str(local_tmp), uploaded_path)
+                    self._call_with_retry(
+                        book_id, "upload", self.dropbox.upload_file, str(local_tmp), uploaded_path
+                    )
                     did_upload = True
             else:
                 # 存在しないのでそのままアップロード
-                self._call_with_retry(book_id, "upload", self.dropbox.upload_file, str(local_tmp), dst)
+                self._call_with_retry(
+                    book_id, "upload", self.dropbox.upload_file, str(local_tmp), dst
+                )
                 did_upload = True
 
             # アップロード検証（サイズ/ハッシュ）
             if did_upload:
                 # メタデータ取得はネットワーク失敗時に再試行
-                remote = self._call_with_retry(book_id, "verify", self.dropbox.get_metadata, uploaded_path)
+                remote = self._call_with_retry(
+                    book_id, "verify", self.dropbox.get_metadata, uploaded_path
+                )
                 try:
-                    logger = logging.getLogger("bds")
+                    logging.getLogger("bds")
                     if not remote.get("exists") or remote.get("type") != "file":
-                        raise RuntimeError(f"uploaded file not found or not a file: {uploaded_path}")
+                        raise RuntimeError(
+                            f"uploaded file not found or not a file: {uploaded_path}"
+                        )
                     # サイズ検証（取得できた場合）
                     try:
                         local_size = int(local_tmp.stat().st_size)
                     except Exception:
                         local_size = None
                     remote_size = remote.get("size")
-                    if local_size is not None and isinstance(remote_size, int) and remote_size != local_size:
-                        raise RuntimeError(f"size mismatch after upload: local={local_size} remote={remote_size} path={uploaded_path}")
+                    if (
+                        local_size is not None
+                        and isinstance(remote_size, int)
+                        and remote_size != local_size
+                    ):
+                        raise RuntimeError(
+                            f"size mismatch after upload: local={local_size} remote={remote_size} path={uploaded_path}"
+                        )
                     # ハッシュ検証（必須）
                     remote_hash = str(remote.get("content_hash") or "")
                     if remote_hash != local_hash:
-                        raise RuntimeError(f"content_hash mismatch after upload: local={local_hash} remote={remote_hash} path={uploaded_path}")
+                        raise RuntimeError(
+                            f"content_hash mismatch after upload: local={local_hash} remote={remote_hash} path={uploaded_path}"
+                        )
                 except BaseException as e:
                     self.failure_store.record_failure(book_id, "verify", e)
                     raise
@@ -250,7 +271,7 @@ class TransferEngine:
                 size_val = int(entry.get("size") or local_tmp.stat().st_size)
             except Exception:
                 size_val = 0
-            meta: Dict[str, Any] = {
+            meta: dict[str, Any] = {
                 "updated_at": str(entry.get("updated_at") or ""),
                 "size": size_val,
                 "hash": local_hash,
@@ -264,7 +285,7 @@ class TransferEngine:
                     self.failure_store.record_failure(book_id, "state_update", e)
                     raise
 
-        errors: List[BaseException] = []
+        errors: list[BaseException] = []
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             futures = [executor.submit(_worker, entry) for entry in plan]
             for fut in as_completed(futures):

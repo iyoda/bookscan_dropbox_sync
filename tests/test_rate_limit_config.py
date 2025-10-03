@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from bds.config import Settings
 from bds.bookscan_client import BookscanClient
+from bds.config import Settings
 from bds.dropbox_client import DropboxClient
 
 
