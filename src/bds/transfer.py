@@ -2,15 +2,14 @@ from __future__ import annotations
 
 import logging
 import threading
+from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
-from typing import Any, Callable, Protocol
+from typing import Any, Protocol
 
 from tenacity import Retrying, retry_if_exception, stop_after_attempt, wait_random_exponential
 
-from .bookscan_client import BookscanClient
 from .config import Settings
-from .dropbox_client import DropboxClient
 from .failure_store import FailureStore
 from .state_store import StateStore
 from .sync_planner import PlanEntry
@@ -113,7 +112,9 @@ class TransferEngine:
             reraise=True,
         )
 
-    def _call_with_retry(self, book_id: str, stage: str, fn: Callable, *args: Any, **kwargs: Any) -> Any:
+    def _call_with_retry(
+        self, book_id: str, stage: str, fn: Callable, *args: Any, **kwargs: Any
+    ) -> Any:
         try:
             for attempt in self._retrying():
                 with attempt:
