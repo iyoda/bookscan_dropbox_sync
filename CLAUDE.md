@@ -120,9 +120,19 @@ The project uses GitHub Actions (`.github/workflows/ci.yml`) which runs:
 All settings are managed via [src/bds/config.py](src/bds/config.py) using pydantic-settings. Configuration is loaded from environment variables or `.env` file.
 
 Key environment variables:
-- `BOOKSCAN_EMAIL`, `BOOKSCAN_PASSWORD`, `BOOKSCAN_TOTP_SECRET`
+
+**Bookscan Authentication:**
+- `BOOKSCAN_EMAIL`, `BOOKSCAN_PASSWORD` - Login credentials (required for real sync)
+- `BOOKSCAN_TOTP_SECRET` - Optional TOTP secret for 2FA
+- `BOOKSCAN_BASE_URL` - Base URL (default: `https://system.bookscan.co.jp`)
+- `BOOKSCAN_LOGIN_URL` - Login endpoint (default: `https://system.bookscan.co.jp/mypage/login.php`)
+- `BOOKSCAN_LIST_URL_TEMPLATE` - Bookshelf URL (default: `https://system.bookscan.co.jp/bookshelf_all_list.php`)
+
+**Dropbox:**
 - `DROPBOX_ACCESS_TOKEN` (simple) or `DROPBOX_REFRESH_TOKEN` + `DROPBOX_APP_KEY` (recommended)
 - `DROPBOX_DEST_ROOT` (default: `/Apps/bookscan-sync`)
+
+**Other Settings:**
 - `STATE_BACKEND` (`json` or `sqlite`)
 - `RATE_LIMIT_QPS` (default: 0.5 = 2 seconds between requests)
 - `RETRY_MAX_ATTEMPTS`, `RETRY_BACKOFF_MULTIPLIER`, `RETRY_BACKOFF_MAX`
@@ -161,6 +171,27 @@ See `.env.example` for full reference.
 - `2` - Configuration error (e.g., missing required credentials)
 
 ## Development Workflows
+
+### Testing with Real Bookscan Login
+
+To test with actual Bookscan authentication, configure the following in `.envrc` or `.env`:
+
+```bash
+export BOOKSCAN_EMAIL=your_email@example.com
+export BOOKSCAN_PASSWORD=your_password
+export BOOKSCAN_BASE_URL=https://system.bookscan.co.jp
+export BOOKSCAN_LOGIN_URL=https://system.bookscan.co.jp/mypage/login.php
+export BOOKSCAN_LIST_URL_TEMPLATE=https://system.bookscan.co.jp/bookshelf_all_list.php
+# Optional: Add TOTP if 2FA is enabled
+# export BOOKSCAN_TOTP_SECRET=your_totp_secret
+```
+
+Then test the login and book listing:
+
+```bash
+source .envrc  # or load your .env
+PYTHONPATH=src python -m bds.cli list
+```
 
 ### Debug Mode (No Real HTTP)
 

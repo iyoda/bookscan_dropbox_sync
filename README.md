@@ -251,7 +251,9 @@ curl -s -u "$DROPBOX_APP_KEY:$DROPBOX_APP_SECRET" https://api.dropboxapi.com/oau
   BOOKSCAN_EMAIL=your_email@example.com
   BOOKSCAN_PASSWORD=your_password
   BOOKSCAN_TOTP_SECRET= # 任意（TOTPが必要な場合）
-  BOOKSCAN_BASE_URL=https://www.bookscan.co.jp # 変更不要の想定
+  BOOKSCAN_BASE_URL=https://system.bookscan.co.jp
+  BOOKSCAN_LOGIN_URL=https://system.bookscan.co.jp/mypage/login.php
+  BOOKSCAN_LIST_URL_TEMPLATE=https://system.bookscan.co.jp/bookshelf_all_list.php
 
   # Dropbox（簡易運用：固定アクセストークンを使用する場合）
   DROPBOX_ACCESS_TOKEN=
@@ -425,14 +427,27 @@ PYTHONPATH=src python -m bds.cli sync --dry-run
   - BOOKSCAN_LIST_STOP_ON_EMPTY: あるページで `.download-item` が0件になったら以降を打ち切る（既定: true）
 - 開発時は `BOOKSCAN_DEBUG_HTML_PATH` が設定されていればそちらが優先されます。
 
-### 簡易ログイン（任意）
+### Bookscanログイン（実装済み）
 
-- ログインフォームのPOST先とフィールド名を指定できます。成功/失敗に関わらず M1 では例外を投げません（ドライラン優先）。
+- 実際のBookscanサイトへのログインに対応しています
 - 環境変数:
-  - BOOKSCAN_LOGIN_URL: ログインPOST先URL
+  - BOOKSCAN_EMAIL: メールアドレス（必須）
+  - BOOKSCAN_PASSWORD: パスワード（必須）
+  - BOOKSCAN_BASE_URL: ベースURL（既定: https://system.bookscan.co.jp）
+  - BOOKSCAN_LOGIN_URL: ログインPOST先URL（既定: https://system.bookscan.co.jp/mypage/login.php）
+  - BOOKSCAN_LIST_URL_TEMPLATE: 本棚一覧URL（既定: https://system.bookscan.co.jp/bookshelf_all_list.php）
+  - BOOKSCAN_TOTP_SECRET: TOTP シークレット（2FA有効時のみ、値の自動生成に対応）
   - BOOKSCAN_LOGIN_EMAIL_FIELD: メールアドレスのフィールド名（既定: email）
   - BOOKSCAN_LOGIN_PASSWORD_FIELD: パスワードのフィールド名（既定: password）
-  - BOOKSCAN_LOGIN_TOTP_FIELD: TOTP のフィールド名（既定: otp、値の自動生成に対応）
+  - BOOKSCAN_LOGIN_TOTP_FIELD: TOTP のフィールド名（既定: otp）
+
+動作確認:
+```bash
+# 環境変数を設定後
+source .envrc
+PYTHONPATH=src python -m bds.cli list
+# 30件の書籍が取得できることを確認
+```
 
 ## list サブコマンド（M2の一部を前倒し）
 

@@ -144,8 +144,14 @@
   - [x] `login dropbox` コマンド（ブラウザ起動/手動コード入力フォールバック）
   - [x] `logout dropbox` コマンド（/2/auth/token/revoke）
   - [ ] DROPBOX_TOKEN_ROTATE フラグの運用/テスト
-- [ ] Bookscan 2FA/TOTP
+- [x] Bookscan認証（実装完了）
+  - [x] 実際のBookscanサイトへのログイン対応
+  - [x] メール/パスワード認証（BOOKSCAN_EMAIL, BOOKSCAN_PASSWORD）
+  - [x] セッション維持（Cookieベース）
+  - [x] bookshelf_all_list.phpからの書籍一覧取得
+  - [x] showbook.phpページのパース対応
   - [x] TOTP自動生成対応（環境変数 BOOKSCAN_TOTP_SECRET）
+  - [x] list_downloadables()のバグ修正（_parse_any_html使用）
 - [ ] Playwrightフォールバック（必要時）
   - [ ] Bot検知/CAPTCHA時のみ切替
   - [ ] Cookie移行/セッション維持
@@ -154,7 +160,8 @@
 - [ ] ローカルブラウザで認可→refresh_token取得が安定（token_access_type=offline, PKCE）
 - [ ] refresh_tokenからaccess_tokenの自動更新で長期稼働が安定（期限切れ時も復旧）
 - [ ] `login dropbox`/`logout dropbox` の操作で認可/失効ができる
-- [ ] 2FA環境でもログイン～同期が可能
+- [x] 2FA環境でもログイン～同期が可能（TOTP対応済み）
+- [x] 実際のBookscanサイトへのログインと書籍一覧取得が動作
 
 ---
 
