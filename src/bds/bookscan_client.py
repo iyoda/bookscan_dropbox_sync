@@ -183,7 +183,7 @@ class BookscanClient:
                     else:
                         continue
 
-                part = self.parse_downloadables(html)
+                part = self._parse_any_html(html)
                 if not part and stop_on_empty:
                     break
                 items.extend(part)
