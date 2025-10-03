@@ -206,9 +206,9 @@ class FailureStore:
                     (int(limit),),
                 )
                 rows = cur.fetchall()
-                out: list[dict[str, Any]] = []
+                result: list[dict[str, Any]] = []
                 for r in rows:
-                    out.append(
+                    result.append(
                         {
                             "book_id": str(r["book_id"]),
                             "stage": str(r["stage"]),
@@ -218,4 +218,4 @@ class FailureStore:
                             "ts": str(r["ts"]),
                         }
                     )
-                return out
+                return result

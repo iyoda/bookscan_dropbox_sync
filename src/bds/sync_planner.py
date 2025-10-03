@@ -55,7 +55,7 @@ class SyncPlanner:
         return f"{normalized}{ext}"
 
     def _needs_upload(self, book_id: str, item: BookItem) -> bool:
-        current: StateItem | None = self.state.get("items", {}).get(book_id)  # type: ignore[assignment]
+        current: StateItem | None = self.state.get("items", {}).get(book_id)
         if not current:
             return True
         # 簡易判定（M1）: updated_at または size が変わっていれば更新とみなす
@@ -67,7 +67,7 @@ class SyncPlanner:
             return True
         return bool(size is not None and cur_size is not None and size != cur_size)
 
-    def plan(self, items: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    def plan(self, items: list[dict[str, Any]]) -> list[PlanEntry]:
         plan: list[PlanEntry] = []
         for raw in items:
             item: BookItem = raw  # type: ignore[assignment]

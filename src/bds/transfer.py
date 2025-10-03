@@ -13,6 +13,7 @@ from .config import Settings
 from .dropbox_client import DropboxClient
 from .failure_store import FailureStore
 from .state_store import StateStore
+from .sync_planner import PlanEntry
 from .util import dropbox_content_hash
 
 
@@ -122,7 +123,7 @@ class TransferEngine:
             candidate = self._append_version_suffix(dest, version)
             version += 1
 
-    def run(self, plan: list[dict[str, Any]], dry_run: bool = False) -> None:
+    def run(self, plan: list[PlanEntry], dry_run: bool = False) -> None:
         """
         与えられたアップロード計画(plan)を実行する。
         - dry_run=True の場合は計画の表示のみ
@@ -152,7 +153,7 @@ class TransferEngine:
             max_workers = 2
         max_workers = max(1, max_workers)
 
-        def _worker(entry: dict[str, Any]) -> None:
+        def _worker(entry: PlanEntry) -> None:
             if entry.get("action") != "upload":
                 return
 

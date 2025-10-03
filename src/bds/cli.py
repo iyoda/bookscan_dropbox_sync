@@ -207,7 +207,7 @@ def _apply_filters(
         size_val = it.get("size")
         size: int | None
         try:
-            size = int(size_val)
+            size = int(size_val) if size_val is not None else None
         except Exception:
             size = None
 
@@ -476,7 +476,7 @@ def login_dropbox(
     import os
     import webbrowser
 
-    import requests  # type: ignore
+    import requests
 
     def _mk_verifier() -> str:
         raw = base64.urlsafe_b64encode(os.urandom(64)).rstrip(b"=")

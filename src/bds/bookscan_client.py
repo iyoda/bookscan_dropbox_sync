@@ -31,7 +31,7 @@ class BookscanClient:
         qps = getattr(self.settings, "BOOKSCAN_RATE_LIMIT_QPS", None)
         if qps is None:
             qps = getattr(self.settings, "RATE_LIMIT_QPS", 0.0)
-        self._rl = RateLimiter(qps)
+        self._rl = RateLimiter(float(qps or 0.0))
 
     def _call_with_retry(self, fn, *args, **kwargs):
         try:
