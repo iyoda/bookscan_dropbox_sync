@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import cast
 
 import pytest
 
 from bds.config import Settings
 from bds.failure_store import FailureStore
 from bds.state_store import StateStore
+from bds.sync_planner import PlanEntry
 from bds.transfer import TransferEngine
 
 
@@ -50,7 +52,7 @@ def test_failure_store_sqlite_record_and_list(tmp_path: Path) -> None:
 
 # ---- helpers for TransferEngine test ----
 class BrokenBookscanClient:
-    def download(self, item, dest_path: str) -> None:
+    def download(self, item: dict, dest_path: str) -> None:
         raise TimeoutError("timed out")  # 分類: timeout(True)
 
 
@@ -58,7 +60,7 @@ class NoopDropboxClient:
     def ensure_folder(self, path: str) -> None:
         return
 
-    def get_metadata(self, dropbox_path: str):
+    def get_metadata(self, dropbox_path: str) -> dict[str, object]:
         return {"exists": False, "path": dropbox_path}
 
     def upload_file(self, local_path: str, dropbox_path: str) -> None:
@@ -89,7 +91,7 @@ def test_transfer_engine_records_download_failure(tmp_path: Path) -> None:
     ]
 
     with pytest.raises(RuntimeError):
-        engine.run(plan, dry_run=False)
+        engine.run(cast(list[PlanEntry], plan), dry_run=False)
 
     # 失敗が記録されている
     items = fs.list_recent()

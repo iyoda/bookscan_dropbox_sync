@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from bds.config import Settings
 from bds.state_store import StateStore
+from bds.sync_planner import PlanEntry
 from bds.transfer import TransferEngine
 
 
@@ -115,7 +116,7 @@ def test_transfer_skips_upload_when_same_content(tmp_path: Path) -> None:
         }
     ]
 
-    engine.run(plan, dry_run=False)
+    engine.run(cast(list[PlanEntry], plan), dry_run=False)
 
     # アップロードは発生しない（既存と同一内容のため）
     assert dbx.upload_calls == []
@@ -159,7 +160,7 @@ def test_transfer_renames_on_conflict(tmp_path: Path) -> None:
         }
     ]
 
-    engine.run(plan, dry_run=False)
+    engine.run(cast(list[PlanEntry], plan), dry_run=False)
 
     v2_path = "/dest/file (v2).pdf"
     assert v2_path in dbx.files
@@ -207,7 +208,7 @@ def test_transfer_renames_on_multi_conflict_to_v3(tmp_path: Path) -> None:
         }
     ]
 
-    engine.run(plan, dry_run=False)
+    engine.run(cast(list[PlanEntry], plan), dry_run=False)
 
     v3_path = "/dest/file (v3).pdf"
     assert v3_path in dbx.files

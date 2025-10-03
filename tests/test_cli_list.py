@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Any
+
 from typer.testing import CliRunner
 
 from bds.cli import app
@@ -14,7 +16,7 @@ def test_cli_list_bookscan_from_debug_html() -> None:
     assert "[LIST] bookscan items: 2" in result.stdout
 
 
-def test_cli_list_state_empty(tmp_path) -> None:
+def test_cli_list_state_empty(tmp_path: Any) -> None:
     runner = CliRunner()
     state_path = tmp_path / "state.json"
     env = {

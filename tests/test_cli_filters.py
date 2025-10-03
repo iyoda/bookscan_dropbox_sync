@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Any
+
 from typer.testing import CliRunner
 
 from bds.cli import app
@@ -48,7 +50,7 @@ def test_cli_list_exclude_keyword_case_insensitive() -> None:
     assert "Second: Work?" not in result.stdout
 
 
-def test_sync_dry_run_min_size_reflects_in_plan_count(tmp_path) -> None:
+def test_sync_dry_run_min_size_reflects_in_plan_count(tmp_path: Any) -> None:
     runner = CliRunner()
     env = {
         "BOOKSCAN_DEBUG_HTML_PATH": "samples/bookscan_list_sample.html",

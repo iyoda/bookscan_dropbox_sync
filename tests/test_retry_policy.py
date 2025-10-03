@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import cast
 
 from bds.config import Settings
 from bds.state_store import StateStore
+from bds.sync_planner import PlanEntry
 from bds.transfer import TransferEngine
 from bds.util import dropbox_content_hash
 
@@ -17,7 +19,7 @@ class FlakyBookscanClient:
     def __init__(self, fail_times: int = 2) -> None:
         self.fail_times = fail_times
 
-    def download(self, item, dest_path: str) -> None:
+    def download(self, item: dict, dest_path: str) -> None:
         if self.fail_times > 0:
             self.fail_times -= 1
             # TransferEngine側の分類では "timed out" を timeout としてretryable=Trueにする
@@ -34,7 +36,7 @@ class StableBookscanClient:
     常に成功するBookscanクライアント
     """
 
-    def download(self, item, dest_path: str) -> None:
+    def download(self, item: dict, dest_path: str) -> None:
         size = int(item.get("size") or 3)
         with open(dest_path, "wb") as f:
             f.write(b"B" * size)
@@ -49,12 +51,12 @@ class MemoryDropboxClient:
     """
 
     def __init__(self) -> None:
-        self.files = {}
+        self.files: dict[str, dict] = {}
 
     def ensure_folder(self, path: str) -> None:
         return
 
-    def get_metadata(self, dropbox_path: str):
+    def get_metadata(self, dropbox_path: str) -> dict[str, object]:
         dp = dropbox_path if dropbox_path.startswith("/") else f"/{dropbox_path}"
         if dp in self.files:
             md = self.files[dp]
@@ -122,7 +124,7 @@ def test_retry_download_eventual_success(tmp_path: Path) -> None:
     ]
 
     # ダウンロードは2回失敗後に成功し、最終的にアップロードまで完了する
-    engine.run(plan, dry_run=False)
+    engine.run(cast(list[PlanEntry], plan), dry_run=False)
 
     state = store.read()
     assert "42" in state["items"]
@@ -162,7 +164,7 @@ def test_retry_upload_429_eventual_success(tmp_path: Path) -> None:
     ]
 
     # 最初のuploadは429で失敗するが、再試行で成功する
-    engine.run(plan, dry_run=False)
+    engine.run(cast(list[PlanEntry], plan), dry_run=False)
 
     state = store.read()
     assert "43" in state["items"]

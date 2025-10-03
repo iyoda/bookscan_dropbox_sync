@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Any
+
 from typer.testing import CliRunner
 
 from bds.cli import app
@@ -25,7 +27,7 @@ def test_cli_list_since_invalid_returns_all() -> None:
     assert "[LIST] bookscan items: 2" in result.stdout
 
 
-def test_sync_dry_run_since_filters_plan_count(tmp_path) -> None:
+def test_sync_dry_run_since_filters_plan_count(tmp_path: Any) -> None:
     runner = CliRunner()
     env = {
         "BOOKSCAN_DEBUG_HTML_PATH": "samples/bookscan_list_sample.html",

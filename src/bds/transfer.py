@@ -4,7 +4,7 @@ import logging
 import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable, Protocol
 
 from tenacity import Retrying, retry_if_exception, stop_after_attempt, wait_random_exponential
 
@@ -17,6 +17,16 @@ from .sync_planner import PlanEntry
 from .util import dropbox_content_hash
 
 
+class BookscanClientProtocol(Protocol):
+    def download(self, item: dict[str, Any], dest_path: str) -> None: ...
+
+
+class DropboxClientProtocol(Protocol):
+    def ensure_folder(self, path: str) -> None: ...
+    def get_metadata(self, dropbox_path: str) -> dict[str, object]: ...
+    def upload_file(self, local_path: str, dropbox_path: str) -> None: ...
+
+
 class TransferEngine:
     """
     ダウンロード→一時フォルダ→Dropboxアップロードを担うエンジン（M1 最小実装）
@@ -27,8 +37,8 @@ class TransferEngine:
     def __init__(
         self,
         settings: Settings,
-        bookscan: BookscanClient,
-        dropbox: DropboxClient,
+        bookscan: BookscanClientProtocol,
+        dropbox: DropboxClientProtocol,
         state_store: StateStore,
         failure_store: FailureStore | None = None,
     ) -> None:
@@ -103,7 +113,7 @@ class TransferEngine:
             reraise=True,
         )
 
-    def _call_with_retry(self, book_id: str, stage: str, fn, *args, **kwargs):
+    def _call_with_retry(self, book_id: str, stage: str, fn: Callable, *args: Any, **kwargs: Any) -> Any:
         try:
             for attempt in self._retrying():
                 with attempt:

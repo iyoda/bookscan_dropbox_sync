@@ -3,7 +3,7 @@ from __future__ import annotations
 import contextlib
 import os
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 import requests
 from bs4 import BeautifulSoup
@@ -33,7 +33,7 @@ class BookscanClient:
             qps = getattr(self.settings, "RATE_LIMIT_QPS", 0.0)
         self._rl = RateLimiter(float(qps or 0.0))
 
-    def _call_with_retry(self, fn, *args, **kwargs):
+    def _call_with_retry(self, fn: Callable, *args: Any, **kwargs: Any) -> Any:
         try:
             for attempt in Retrying(
                 stop=stop_after_attempt(5),
@@ -150,11 +150,11 @@ class BookscanClient:
                         except Exception:
                             continue
 
-                items: list[ItemMeta] = []
+                debug_items: list[ItemMeta] = []
                 for html in html_docs:
                     parsed = self._parse_any_html(html)
-                    items.extend(parsed)
-                return items
+                    debug_items.extend(parsed)
+                return debug_items
             except Exception:
                 # デバッグ指定時は失敗しても空配列で継続
                 return []
@@ -265,26 +265,26 @@ class BookscanClient:
         soup = BeautifulSoup(html, "html.parser")
         items: list[ItemMeta] = []
         for el in soup.select(".download-item"):
-            book_id = (el.get("data-id") or "").strip()
+            book_id = str(el.get("data-id") or "").strip()
             if not book_id:
                 # IDが無ければスキップ
                 continue
 
-            title_raw: str | None = (el.get("data-title") or "").strip() or None
-            ext_raw = (el.get("data-ext") or "pdf").strip()
+            title_raw: str | None = str(el.get("data-title") or "").strip() or None
+            ext_raw = str(el.get("data-ext") or "pdf").strip()
             ext = ext_raw[1:] if ext_raw.startswith(".") else ext_raw
 
-            updated_at = (el.get("data-updated") or "").strip()
+            updated_at = str(el.get("data-updated") or "").strip()
 
             size_val = 0
-            size_raw = (el.get("data-size") or "").strip()
+            size_raw = str(el.get("data-size") or "").strip()
             if size_raw:
                 try:
                     size_val = int(size_raw)
                 except ValueError:
                     size_val = 0
 
-            pdf_url = (el.get("data-url") or "").strip()
+            pdf_url = str(el.get("data-url") or "").strip()
 
             item: ItemMeta = {
                 "id": book_id,
@@ -336,7 +336,7 @@ class BookscanClient:
 
         a = soup.select_one("ul.detail_navi a[href*='download.php']")
         if a:
-            href = a.get("href") or ""
+            href = str(a.get("href") or "")
             if href:
                 pdf_url = href
                 # タイトルの補完（f= から）
@@ -385,7 +385,7 @@ class BookscanClient:
         soup = BeautifulSoup(html, "html.parser")
         items: list[ItemMeta] = []
         for a in soup.select("a[href*='showbook.php']"):
-            href = a.get("href") or ""
+            href = str(a.get("href") or "")
             if not href:
                 continue
             q = parse_qs(urlparse(href).query)
