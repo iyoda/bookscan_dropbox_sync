@@ -8,7 +8,7 @@ from bds.config import Settings
 
 
 def test_parse_showbook_html_single_item() -> None:
-    p = Path("samples/showbook_bid_6403637.html")
+    p = Path("samples/showbook_sample.html")
     assert p.exists(), "sample showbook file missing"
     html = p.read_text(encoding="utf-8", errors="ignore")
     s = Settings()
@@ -17,8 +17,8 @@ def test_parse_showbook_html_single_item() -> None:
     assert isinstance(items, list)
     assert len(items) == 1
     it = items[0]
-    assert it["id"] == "6403637"
-    assert "綿の国星 7" in str(it["title"])  # title extracted without .pdf
+    assert it["id"] == "1001"
+    assert "Sample Book Title" in str(it["title"])  # title extracted without .pdf
     assert it["ext"] == "pdf"
     # download link present on page
     assert "pdf_url" in it and str(it["pdf_url"]).startswith("/download.php")
