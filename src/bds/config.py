@@ -40,7 +40,7 @@ class Settings(BaseSettings):
     STATE_BACKEND: str = "json"  # または "sqlite"
     STATE_PATH: str = ".state/state.json"  # sqliteの場合は .state/state.db
     SYNC_MODE: str = "incremental"  # incremental|full|dry-run
-    CONCURRENCY: int = 2
+    CONCURRENCY: int = 1
     RATE_LIMIT_QPS: float = 0.5
     BOOKSCAN_RATE_LIMIT_QPS: float | None = None
     DROPBOX_RATE_LIMIT_QPS: float | None = None
