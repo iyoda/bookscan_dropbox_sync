@@ -7,13 +7,12 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import Any, Protocol
 
-from tenacity import Retrying, retry_if_exception, stop_after_attempt, wait_random_exponential
 
 from .config import Settings
 from .failure_store import FailureStore
 from .state_store import StateStore
 from .sync_planner import PlanEntry
-from .util import dropbox_content_hash
+from .util import call_with_retry, create_retrying_from_settings, dropbox_content_hash
 
 
 class BookscanClientProtocol(Protocol):
@@ -47,6 +46,7 @@ class TransferEngine:
         self.state_store = state_store
         self.failure_store = failure_store or FailureStore(settings)
         self._state_lock = threading.Lock()
+        self._retrying = create_retrying_from_settings(settings, self.failure_store)
 
     def _ensure_download_dir(self) -> Path:
         d = Path(self.settings.DOWNLOAD_DIR)
@@ -84,41 +84,11 @@ class TransferEngine:
             candidate = self._append_version_suffix(dest, version)
             version += 1
 
-    def _retrying(self) -> Retrying:
-        try:
-            max_attempts = int(getattr(self.settings, "RETRY_MAX_ATTEMPTS", 3))
-        except Exception:
-            max_attempts = 3
-        try:
-            backoff_mult = float(getattr(self.settings, "RETRY_BACKOFF_MULTIPLIER", 0.1))
-        except Exception:
-            backoff_mult = 0.1
-        try:
-            backoff_max = float(getattr(self.settings, "RETRY_BACKOFF_MAX", 2.0))
-        except Exception:
-            backoff_max = 2.0
-
-        if backoff_mult <= 0:
-            backoff_mult = 0.01
-        if backoff_max <= 0:
-            backoff_max = 1.0
-        max_attempts = max(1, max_attempts)
-
-        predicate = retry_if_exception(lambda e: self.failure_store.classify_exception(e)[1])
-        return Retrying(
-            stop=stop_after_attempt(max_attempts),
-            wait=wait_random_exponential(multiplier=backoff_mult, max=backoff_max),
-            retry=predicate,
-            reraise=True,
-        )
-
     def _call_with_retry(
         self, book_id: str, stage: str, fn: Callable, *args: Any, **kwargs: Any
     ) -> Any:
         try:
-            for attempt in self._retrying():
-                with attempt:
-                    return fn(*args, **kwargs)
+            return call_with_retry(self._retrying, fn, *args, **kwargs)
         except BaseException as e:
             # 最終的に失敗した場合のみ記録
             self.failure_store.record_failure(book_id, stage, e)

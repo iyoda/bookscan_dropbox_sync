@@ -8,10 +8,9 @@ from typing import Any
 
 import requests
 from bs4 import BeautifulSoup
-from tenacity import Retrying, retry_if_exception_type, stop_after_attempt, wait_random_exponential
 
 from .config import Settings
-from .util import RateLimiter, totp
+from .util import RateLimiter, call_with_retry, create_simple_retrying, totp
 
 ItemMeta = dict[str, Any]
 
@@ -33,19 +32,10 @@ class BookscanClient:
         if qps is None:
             qps = getattr(self.settings, "RATE_LIMIT_QPS", 0.0)
         self._rl = RateLimiter(float(qps or 0.0))
+        self._retrying = create_simple_retrying(max_attempts=5, backoff_multiplier=1.0, backoff_max=10.0)
 
     def _call_with_retry(self, fn: Callable, *args: Any, **kwargs: Any) -> Any:
-        try:
-            for attempt in Retrying(
-                stop=stop_after_attempt(5),
-                wait=wait_random_exponential(multiplier=1, max=10),
-                retry=retry_if_exception_type(Exception),
-                reraise=True,
-            ):
-                with attempt:
-                    return fn(*args, **kwargs)
-        except Exception:
-            raise
+        return call_with_retry(self._retrying, fn, *args, **kwargs)
 
     def login(self) -> None:
         """
