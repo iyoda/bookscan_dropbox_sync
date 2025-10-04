@@ -1,8 +1,15 @@
 from __future__ import annotations
 
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
-from tenacity import Retrying, retry_if_exception, retry_if_exception_type, stop_after_attempt, wait_random_exponential
+from tenacity import (
+    Retrying,
+    retry_if_exception,
+    retry_if_exception_type,
+    stop_after_attempt,
+    wait_random_exponential,
+)
 
 from ..config import Settings
 
@@ -34,7 +41,9 @@ def create_retrying_from_settings(
         max_attempts = fallback_max_attempts
 
     try:
-        backoff_mult = float(getattr(settings, "RETRY_BACKOFF_MULTIPLIER", fallback_backoff_multiplier))
+        backoff_mult = float(
+            getattr(settings, "RETRY_BACKOFF_MULTIPLIER", fallback_backoff_multiplier)
+        )
     except Exception:
         backoff_mult = fallback_backoff_multiplier
 
