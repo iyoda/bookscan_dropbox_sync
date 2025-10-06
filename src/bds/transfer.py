@@ -151,9 +151,11 @@ class TransferEngine:
                 "updated_at": entry.get("updated_at"),
                 "size": entry.get("size"),
             }
-            # pdf_url（存在すれば）をダウンロード情報に引き継ぐ
+            # pdf_url と showbook_url（存在すれば）をダウンロード情報に引き継ぐ
             if entry.get("pdf_url"):
                 item_for_download["pdf_url"] = entry["pdf_url"]
+            if entry.get("showbook_url"):
+                item_for_download["showbook_url"] = entry["showbook_url"]
             self._call_with_retry(
                 book_id, "download", self.bookscan.download, item_for_download, str(local_tmp)
             )

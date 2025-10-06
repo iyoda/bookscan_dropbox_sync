@@ -31,6 +31,7 @@ class PlanEntry(TypedDict, total=False):
     updated_at: str
     size: int
     pdf_url: str
+    showbook_url: str
 
 
 class SyncPlanner:
@@ -91,5 +92,7 @@ class SyncPlanner:
             }
             if "pdf_url" in item and item.get("pdf_url"):
                 entry["pdf_url"] = str(item["pdf_url"])  # type: ignore[typeddict-item]
+            if "showbook_url" in item and item.get("showbook_url"):
+                entry["showbook_url"] = str(item["showbook_url"])  # type: ignore[typeddict-item]
             plan.append(entry)
         return plan

@@ -199,9 +199,30 @@ class BookscanClient:
         指定アイテムをdest_pathへダウンロード。
         M1最小版: pdf_url が http(s) の場合はGETして保存。
         file:// またはローカルパスの場合はコピー相当で保存。
+        showbook_urlがある場合は、そのページからダウンロードURLを取得。
         それ以外は size に応じた空/ダミーのファイルを書き出す。
         """
         url = str(item.get("pdf_url") or "")
+
+        # showbook_urlがあり、pdf_urlが無い場合は、showbookページからダウンロードURLを取得
+        if not url and item.get("showbook_url"):
+            showbook_url = str(item["showbook_url"])
+            if not showbook_url.startswith("http"):
+                showbook_url = f"{self.base_url}{showbook_url}"
+
+            try:
+                self._rl.throttle()
+                resp = self._call_with_retry(self.session.get, showbook_url, timeout=self.timeout)
+                resp.raise_for_status()
+
+                # showbookページからダウンロードURLを抽出
+                soup = BeautifulSoup(resp.text, "html.parser")
+                download_link = soup.select_one("a[href*='download']")
+                if download_link:
+                    url = str(download_link.get("href") or "")
+            except Exception:
+                pass
+
         dp = Path(dest_path)
         dp.parent.mkdir(parents=True, exist_ok=True)
 
@@ -371,13 +392,14 @@ class BookscanClient:
         ItemMeta 配列を作成。
         - a[href*='showbook.php'] のクエリから bid と f を抽出
         - f が無い場合は近傍の h3 テキストをタイトルとして採用
+        - showbook URLをそのまま保存（後でダウンロードURLを取得するため）
         """
         import re
         from urllib.parse import parse_qs, unquote, urlparse
 
         soup = BeautifulSoup(html, "html.parser")
         items: list[ItemMeta] = []
-        for a in soup.select("a[href*='showbook.php']"):
+        for a in soup.select("a[href*='showbook']"):
             href = str(a.get("href") or "")
             if not href:
                 continue
@@ -405,15 +427,16 @@ class BookscanClient:
                 title = bid
             if title.lower().endswith(".pdf"):
                 title = title[:-4]
-            items.append(
-                {
-                    "id": bid,
-                    "title": title,
-                    "ext": "pdf",
-                    "updated_at": "",
-                    "size": 0,
-                }
-            )
+
+            item: ItemMeta = {
+                "id": bid,
+                "title": title,
+                "ext": "pdf",
+                "updated_at": "",
+                "size": 0,
+                "showbook_url": href,  # showbook URLを保存
+            }
+            items.append(item)
         return items
 
     def _parse_any_html(self, html: str) -> list[ItemMeta]:
