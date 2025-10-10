@@ -10,8 +10,9 @@ from .util import RateLimiter
 
 class DropboxClient:
     """
-    Dropboxへのフォルダ/ファイル操作を行うクライアント（M1: 固定アクセストークン想定）
-    - 単純アップロード（小サイズ前提）
+    Dropboxへのフォルダ/ファイル操作を行うクライアント
+    - M1: 固定アクセストークン対応
+    - M4: OAuth リフレッシュトークン対応（自動トークン更新）
     - フォルダ作成（存在時は無視）
     - 簡易メタデータ取得
     """
@@ -25,31 +26,64 @@ class DropboxClient:
         self._rl = RateLimiter(float(qps or 0.0))
 
     def _client(self) -> dropbox.Dropbox:
-        token = self.settings.DROPBOX_ACCESS_TOKEN
-        if not token:
-            raise ValueError("DROPBOX_ACCESS_TOKEN is required for Dropbox operations in M1.")
+        """
+        Dropboxクライアントを取得または初期化する。
+        リフレッシュトークンがある場合はそれを使用（自動更新）、
+        なければ固定アクセストークンを使用。
+        """
         if self._dbx is None:
-            self._dbx = dropbox.Dropbox(
-                oauth2_access_token=token,
-                timeout=self.settings.HTTP_TIMEOUT,
-                user_agent=self.settings.USER_AGENT,
-                max_retries_on_error=5,
-                max_retries_on_rate_limit=5,
-            )
+            # リフレッシュトークンを優先
+            refresh_token = self.settings.DROPBOX_REFRESH_TOKEN
+            app_key = self.settings.DROPBOX_APP_KEY
+            app_secret = self.settings.DROPBOX_APP_SECRET
+
+            if refresh_token and app_key:
+                # M4: OAuth リフレッシュトークンを使用
+                self._dbx = dropbox.Dropbox(
+                    oauth2_refresh_token=refresh_token,
+                    app_key=app_key,
+                    app_secret=app_secret,
+                    timeout=self.settings.HTTP_TIMEOUT,
+                    user_agent=self.settings.USER_AGENT,
+                    max_retries_on_error=5,
+                    max_retries_on_rate_limit=5,
+                )
+            else:
+                # M1: 固定アクセストークンを使用
+                token = self.settings.DROPBOX_ACCESS_TOKEN
+                if not token:
+                    raise ValueError(
+                        "Either DROPBOX_ACCESS_TOKEN or (DROPBOX_REFRESH_TOKEN + DROPBOX_APP_KEY) "
+                        "is required for Dropbox operations."
+                    )
+                self._dbx = dropbox.Dropbox(
+                    oauth2_access_token=token,
+                    timeout=self.settings.HTTP_TIMEOUT,
+                    user_agent=self.settings.USER_AGENT,
+                    max_retries_on_error=5,
+                    max_retries_on_rate_limit=5,
+                )
+
             # トークンの有効性を検証
             try:
                 self._dbx.users_get_current_account()
             except Exception as e:
                 error_msg = str(e)
                 if "expired_access_token" in error_msg.lower():
-                    raise ValueError(
-                        "Dropbox access token has expired. Please update DROPBOX_ACCESS_TOKEN "
-                        "in your .env file with a fresh token."
-                    ) from e
+                    if refresh_token:
+                        # リフレッシュトークン使用時は自動更新されるはずなので、設定エラーの可能性
+                        raise ValueError(
+                            "Dropbox access token has expired and could not be refreshed. "
+                            "Please check DROPBOX_REFRESH_TOKEN, DROPBOX_APP_KEY, and DROPBOX_APP_SECRET."
+                        ) from e
+                    else:
+                        raise ValueError(
+                            "Dropbox access token has expired. Please update DROPBOX_ACCESS_TOKEN "
+                            "in your .env file with a fresh token, or set up refresh token authentication."
+                        ) from e
                 if "invalid_access_token" in error_msg.lower():
                     raise ValueError(
-                        "Dropbox access token is invalid. Please check DROPBOX_ACCESS_TOKEN "
-                        "in your .env file."
+                        "Dropbox access token is invalid. Please check your Dropbox credentials."
                     ) from e
                 raise
         return self._dbx

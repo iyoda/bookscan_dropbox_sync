@@ -64,11 +64,17 @@ class Settings(BaseSettings):
 
     def validate_for_m1(self, dry_run: bool = False) -> None:
         """
-        M1要件の簡易バリデーション:
-        - 非ドライラン時は DROPBOX_ACCESS_TOKEN を必須とする
+        M1/M4要件の簡易バリデーション:
+        - 非ドライラン時は DROPBOX_ACCESS_TOKEN または (DROPBOX_REFRESH_TOKEN + DROPBOX_APP_KEY) を必須とする
         """
-        if not dry_run and not self.DROPBOX_ACCESS_TOKEN:
-            raise ValueError("DROPBOX_ACCESS_TOKEN is required for upload (non dry-run).")
+        if not dry_run:
+            has_access_token = bool(self.DROPBOX_ACCESS_TOKEN)
+            has_refresh_token = bool(self.DROPBOX_REFRESH_TOKEN and self.DROPBOX_APP_KEY)
+            if not has_access_token and not has_refresh_token:
+                raise ValueError(
+                    "Either DROPBOX_ACCESS_TOKEN or (DROPBOX_REFRESH_TOKEN + DROPBOX_APP_KEY) "
+                    "is required for upload (non dry-run)."
+                )
 
     @property
     def is_json_backend(self) -> bool:

@@ -134,16 +134,17 @@
 
 ## M4 認証/自動化強化
 
-- [ ] Dropbox OAuth（推奨運用）
-  - [ ] OAuth 2.0 Authorization Code + PKCE 実装（client_secret不要）
-  - [ ] token_access_type=offline で refresh_token を取得
-  - [ ] スコープ定義: files.metadata.read/write, files.content.read/write
-  - [ ] ローカルリダイレクトURI（http://localhost:53682/callback）ハンドラ
-  - [ ] refresh_token の安全な保存（.env もしくはKeychain/1Password; 将来切替可能）
-  - [ ] access_token 自動更新（refresh）と失効時の再認可ハンドリング
+- [x] Dropbox OAuth（推奨運用）
+  - [x] OAuth 2.0 Authorization Code + PKCE 実装（client_secret不要）
+  - [x] token_access_type=offline で refresh_token を取得
+  - [x] スコープ定義: account_info.read, files.metadata.read/write, files.content.read/write
+  - [x] ローカルリダイレクトURI（http://localhost:53682/callback）ハンドラ
+  - [x] refresh_token の安全な保存（.env）
+  - [x] access_token 自動更新（refresh）と失効時の再認可ハンドリング
   - [x] `login dropbox` コマンド（ブラウザ起動/手動コード入力フォールバック）
   - [x] `logout dropbox` コマンド（/2/auth/token/revoke）
-  - [ ] DROPBOX_TOKEN_ROTATE フラグの運用/テスト
+  - [x] DropboxClientでのリフレッシュトークン自動使用（M4実装完了）
+  - [ ] DROPBOX_TOKEN_ROTATE フラグの運用/テスト（オプション・将来拡張）
 - [x] Bookscan認証（実装完了）
   - [x] 実際のBookscanサイトへのログイン対応
   - [x] メール/パスワード認証（BOOKSCAN_EMAIL, BOOKSCAN_PASSWORD）
@@ -157,11 +158,12 @@
   - [ ] Cookie移行/セッション維持
 
 受け入れ条件（M4）
-- [ ] ローカルブラウザで認可→refresh_token取得が安定（token_access_type=offline, PKCE）
-- [ ] refresh_tokenからaccess_tokenの自動更新で長期稼働が安定（期限切れ時も復旧）
-- [ ] `login dropbox`/`logout dropbox` の操作で認可/失効ができる
+- [x] ローカルブラウザで認可→refresh_token取得が安定（token_access_type=offline, PKCE）
+- [x] refresh_tokenからaccess_tokenの自動更新で長期稼働が安定（期限切れ時も復旧）
+- [x] `login dropbox`/`logout dropbox` の操作で認可/失効ができる
 - [x] 2FA環境でもログイン～同期が可能（TOTP対応済み）
 - [x] 実際のBookscanサイトへのログインと書籍一覧取得が動作
+- [x] リフレッシュトークンを使用した長時間同期が途中で止まらない（286件同期確認済み）
 
 ---
 

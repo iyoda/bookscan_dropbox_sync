@@ -89,8 +89,10 @@ The project uses GitHub Actions (`.github/workflows/ci.yml`) which runs:
 **DropboxClient** ([src/bds/dropbox_client.py](src/bds/dropbox_client.py))
 - File upload with chunked session upload for large files (>8MB by default)
 - Folder creation and metadata retrieval
-- Supports both fixed access token and OAuth refresh token workflows
+- **M4 完了**: OAuth refresh token support with automatic token renewal (no more 4-hour expiration issues)
+- Supports both fixed access token (legacy) and OAuth refresh token workflows (recommended)
 - Uses `dropbox` SDK with automatic retry handling for rate limits
+- Prioritizes refresh token if `DROPBOX_REFRESH_TOKEN` + `DROPBOX_APP_KEY` are set
 
 **StateStore** ([src/bds/state_store.py](src/bds/state_store.py))
 - Tracks synchronized items to enable incremental sync
@@ -129,8 +131,9 @@ Key environment variables:
 - `BOOKSCAN_LIST_URL_TEMPLATE` - Bookshelf URL (default: `https://system.bookscan.co.jp/bookshelf_all_list.php`)
 
 **Dropbox:**
-- `DROPBOX_ACCESS_TOKEN` (simple) or `DROPBOX_REFRESH_TOKEN` + `DROPBOX_APP_KEY` (recommended)
+- `DROPBOX_ACCESS_TOKEN` (legacy, expires in 4 hours) or `DROPBOX_REFRESH_TOKEN` + `DROPBOX_APP_KEY` + `DROPBOX_APP_SECRET` (recommended, never expires)
 - `DROPBOX_DEST_ROOT` (default: `/Apps/bookscan-sync`)
+- Use `bds login dropbox` to obtain refresh token via OAuth PKCE flow
 
 **Other Settings:**
 - `STATE_BACKEND` (`json` or `sqlite`)
@@ -298,7 +301,7 @@ See [TODO.md](TODO.md) for detailed milestone tracking:
 - **M1** (Minimum Viable Sync) - ✅ Complete
 - **M2** (Practical CLI) - ✅ Complete
 - **M3** (Reliability & Scale) - ✅ Complete
-- **M4** (OAuth & 2FA) - 🚧 In Progress
+- **M4** (OAuth & 2FA) - ✅ Complete
 - **M5** (Distribution & Operations) - 📋 Planned
 
-Current status: M3 complete with retry, chunked uploads, concurrent transfers, and failure tracking. M4 OAuth implementation is partially complete.
+Current status: M4 complete with Dropbox OAuth refresh token support and automatic token renewal. The tool now supports long-running syncs without token expiration issues. Bookscan authentication with TOTP 2FA is also fully functional.
