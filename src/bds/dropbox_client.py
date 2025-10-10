@@ -36,6 +36,22 @@ class DropboxClient:
                 max_retries_on_error=5,
                 max_retries_on_rate_limit=5,
             )
+            # トークンの有効性を検証
+            try:
+                self._dbx.users_get_current_account()
+            except Exception as e:
+                error_msg = str(e)
+                if "expired_access_token" in error_msg.lower():
+                    raise ValueError(
+                        "Dropbox access token has expired. Please update DROPBOX_ACCESS_TOKEN "
+                        "in your .env file with a fresh token."
+                    ) from e
+                if "invalid_access_token" in error_msg.lower():
+                    raise ValueError(
+                        "Dropbox access token is invalid. Please check DROPBOX_ACCESS_TOKEN "
+                        "in your .env file."
+                    ) from e
+                raise
         return self._dbx
 
     @staticmethod
