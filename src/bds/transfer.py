@@ -143,22 +143,48 @@ class TransferEngine:
 
             local_tmp = tmp_dir / f"{book_id}.{ext}"
 
-            # Bookscanからダウンロード
-            item_for_download: dict[str, Any] = {
-                "id": book_id,
-                "title": entry.get("title"),
-                "ext": ext,
-                "updated_at": entry.get("updated_at"),
-                "size": entry.get("size"),
-            }
-            # pdf_url と showbook_url（存在すれば）をダウンロード情報に引き継ぐ
-            if entry.get("pdf_url"):
-                item_for_download["pdf_url"] = entry["pdf_url"]
-            if entry.get("showbook_url"):
-                item_for_download["showbook_url"] = entry["showbook_url"]
-            self._call_with_retry(
-                book_id, "download", self.bookscan.download, item_for_download, str(local_tmp)
-            )
+            # キャッシュチェック: 既に有効なファイルがあればダウンロードをスキップ
+            cache_valid = False
+            if local_tmp.exists():
+                try:
+                    cached_size = int(local_tmp.stat().st_size)
+                    cache_expected_size = entry.get("size")
+
+                    # サイズチェック（cache_expected_sizeが0または不明な場合は、ファイルが空でなければOK）
+                    if cached_size > 0 and (
+                        cache_expected_size is None
+                        or cache_expected_size == 0
+                        or int(cache_expected_size) == cached_size
+                    ):
+                        cache_valid = True
+                except Exception:
+                    pass
+
+            # キャッシュが有効ならダウンロードをスキップ
+            if cache_valid:
+                logging.info(
+                    "cache hit: skipping download for book_id=%s (cached file: %s, size: %d bytes)",
+                    book_id,
+                    local_tmp.name,
+                    local_tmp.stat().st_size,
+                )
+            if not cache_valid:
+                # Bookscanからダウンロード
+                item_for_download: dict[str, Any] = {
+                    "id": book_id,
+                    "title": entry.get("title"),
+                    "ext": ext,
+                    "updated_at": entry.get("updated_at"),
+                    "size": entry.get("size"),
+                }
+                # pdf_url と showbook_url（存在すれば）をダウンロード情報に引き継ぐ
+                if entry.get("pdf_url"):
+                    item_for_download["pdf_url"] = entry["pdf_url"]
+                if entry.get("showbook_url"):
+                    item_for_download["showbook_url"] = entry["showbook_url"]
+                self._call_with_retry(
+                    book_id, "download", self.bookscan.download, item_for_download, str(local_tmp)
+                )
             # ダウンロード整合性チェック（サイズ/空ファイル）
             try:
                 try:
@@ -173,7 +199,8 @@ class TransferEngine:
                     expected_size = None
                 if actual_size <= 0:
                     raise RuntimeError(f"downloaded file is empty: {local_tmp} (book_id={book_id})")
-                if expected_size is not None and expected_size != actual_size:
+                # サイズチェック: expected_sizeが0または不明な場合はスキップ
+                if expected_size is not None and expected_size > 0 and expected_size != actual_size:
                     raise RuntimeError(
                         f"download size mismatch: expected={expected_size} actual={actual_size} book_id={book_id}"
                     )
